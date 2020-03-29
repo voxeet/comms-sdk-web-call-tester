@@ -56,18 +56,11 @@ class VoxeetConferencePreCall extends Component {
   }
 
   initializeConference() {
-    const sdk = Sdk.create()
-    sdk.initialize(this.props.consumerKey, this.props.consumerSecret, { name: 'Call-tester' })
-    .then(() => {
-      this.startCallTest()
-      Sdk.instance.on('qualityIndicators', (ind) => {
-        this.setState({ mos: ind.mos })
-      })
-      this.setState({ initialized: true })
-    })
-    .catch((err) => {
-      this.setState({ initialized: false, error: "An error occured during initializing the conference, please check your consumerKey/consumerSecret", endTesting: true })
-    })
+    VoxeetSdk.initialize(this.props.consumerKey, this.props.consumerSecret);
+
+    this.startCallTest()
+    this.setState({ initialized: true })
+    //this.setState({mos: ind.mos});
   }
 
   handleChangeAudioOnly() {
@@ -80,130 +73,157 @@ class VoxeetConferencePreCall extends Component {
   startCallTest() {
     this.setState({ audioOnly: this.state.nextTestAudioOnly })
     var constraints = {audio: true, video: this.state.nextTestAudioOnly ? false : true};
+    var userInfo = {name: "tester", "externalId":"btest"};
+    var alreadyStarted = false;
 
-    Sdk.instance.joinConference("call-tester-" + Math.floor(Math.random() * 1001), {conference: { params: { stats: true, videoCodec: "H264" }}, constraints: constraints})
-      .then((info) => {
-        const optionsBitrate = {
-          spanGaps: true,
-          animation: false,
-          legend: {
-              display: false
-          },
-          draggable: true,
-          scales: {
-              yAxes:[{
-                  scaleLabel: {
-                      display: true,
-                      labelString: 'kb/s',
-                      fontFamily: "Open Sans",
-                      fontSize: 14
-                  },
-                  ticks: {
-                    beginAtZero: true,
-                    min: 0
-                }
-              }],
-              xAxes:[{
-                  scaleLabel: {
-                      display: true,
-                      labelString: 'time',
-                      fontFamily: "Open Sans",
-                      fontSize: 14
-                  }
-              }]
+    VoxeetSdk.session.open(userInfo).then(() => {
+      VoxeetSdk.conference.create({alias: "call-tester-" + Math.floor(Math.random() * 1001), params: { stats: true, videoCodec: "H264" }}).then(conference => {
+        VoxeetSdk.conference.on("participantUpdated", (user) => {
+          //console.log("Participant: ",user);
+          if(!alreadyStarted) {
+            alreadyStarted = true;
+            const video = {
+                            mandatory: {
+                              minWidth: 1920,
+                              minHeight: 1080,
+                              maxWidth: 1920,
+                              maxHeight: 1080,
+                              minFrameRate: 10,
+                              maxFrameRate: 30,
+                            }
+                          };
+            VoxeetSdk.conference.startVideo(user,video).then(() => {
+              console.log("Started video");
+            })
+            .catch((e) => {console.log(e)})
           }
-        }
-
-        var bitrateAudio = document.getElementById("bitrateAudio");
-        var bitrateAudioChart = new Chart(bitrateAudio, {
-            type: 'line',
-            options: optionsBitrate
         });
+      VoxeetSdk.conference.join(conference,{constrainst: constraints})
+        .then((info) => {
+          const optionsBitrate = {
+            spanGaps: true,
+            animation: false,
+            legend: {
+                display: false
+            },
+            draggable: true,
+            scales: {
+                yAxes:[{
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'kb/s',
+                        fontFamily: "Open Sans",
+                        fontSize: 14
+                    },
+                    ticks: {
+                      beginAtZero: true,
+                      min: 0
+                  }
+                }],
+                xAxes:[{
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'time',
+                        fontFamily: "Open Sans",
+                        fontSize: 14
+                    }
+                }]
+            }
+          }
 
-        bitrateAudioChart.data.datasets.push({
-          label: "bitrate_audio",
-          data: this.state.statsAudio,
-          pointBorderWidth: 3,
-          fill: false,
-          borderColor: "#e57373",
-          pointBorderColor: "#e57373",
-          pointBackgroundColor: "#e57373",
-          pointHoverRadius: 3,
-          pointHoverBorderWidth: 1,
-          pointRadius: 3,
-          borderWidth: 1
-        })
-
-        if (!this.state.nextTestAudioOnly) {
-          var bitrateVideo = document.getElementById("bitrateVideo");
-          var bitrateVideoChart = new Chart(bitrateVideo, {
+          var bitrateAudio = document.getElementById("bitrateAudio");
+          var bitrateAudioChart = new Chart(bitrateAudio, {
               type: 'line',
               options: optionsBitrate
           });
 
-          bitrateVideoChart.data.datasets.push({
-            label: "bitrate_video",
-            data: this.state.statsVideo,
+          bitrateAudioChart.data.datasets.push({
+            label: "bitrate_audio",
+            data: this.state.statsAudio,
             pointBorderWidth: 3,
+            fill: false,
             borderColor: "#e57373",
             pointBorderColor: "#e57373",
             pointBackgroundColor: "#e57373",
-            fill: false,
             pointHoverRadius: 3,
             pointHoverBorderWidth: 1,
             pointRadius: 3,
             borderWidth: 1
           })
-        }
-        var intervalId = setInterval(this.getStats, 1000);
-        this.setState({intervalId: intervalId, joinConferenceState: true, bitrateAudioChart, bitrateVideoChart, audioOnly: this.state.nextTestAudioOnly});
-        setTimeout(() => {
-          const browser = Bowser.getParser(window.navigator.userAgent);
-          const browserInfo = browser.getBrowser();
-          const isValidBrowser = browser.satisfies({
-            chrome: ">65",
-            firefox: ">60",
-            edge: ">17",
-            safari: ">11",
-            opera: ">57"
-          });
-          clearInterval(this.state.intervalId);
-          this.setState({intervalId: null , endTesting: true, isValidBrowser, browserInfo });
-          Sdk.instance.leaveConference()
-          navigator.mediaDevices.getUserMedia({ audio: true, video: this.state.audioOnly ? false : true })
-          .then((stream) => {
-              if (!this.state.audioOnly) {
-                navigator.attachMediaStream(this.video, stream)
-                this.setState({ videoHeight: stream.getVideoTracks()[0].getSettings().height, videoWidth: stream.getVideoTracks()[0].getSettings().width, userStream: stream })
-              } else {
-                this.setState({ userStream: stream })
-              }
-              if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-                  return navigator.mediaDevices.enumerateDevices()
-                      .then(sources => {
-                      let audioDevices = new Array();
-                      let videoDevices = new Array();
-                      let outputDevices = new Array();
-                      sources.forEach(source => {
-                          if (source.kind === 'videoinput') {
-                            videoDevices.push(source);
-                          }
-                          if (source.kind === `audioinput`) {
-                            audioDevices.push(source);
-                          }
-                          if (source.kind === 'audiooutput') {
-                            outputDevices.push(source);
-                          }
-                      })
-                      this.setState({ audioDevices, outputDevices, videoDevices })
-                  });
-              }
-          })
-        }, 5000)
+
+          if (!this.state.nextTestAudioOnly) {
+            var bitrateVideo = document.getElementById("bitrateVideo");
+            var bitrateVideoChart = new Chart(bitrateVideo, {
+                type: 'line',
+                options: optionsBitrate
+            });
+
+            bitrateVideoChart.data.datasets.push({
+              label: "bitrate_video",
+              data: this.state.statsVideo,
+              pointBorderWidth: 3,
+              borderColor: "#e57373",
+              pointBorderColor: "#e57373",
+              pointBackgroundColor: "#e57373",
+              fill: false,
+              pointHoverRadius: 3,
+              pointHoverBorderWidth: 1,
+              pointRadius: 3,
+              borderWidth: 1
+            })
+          }
+
+          var intervalId = setInterval(this.getStats, 1000);
+          this.setState({intervalId: intervalId, joinConferenceState: true, bitrateAudioChart, bitrateVideoChart, audioOnly: this.state.nextTestAudioOnly});
+          setTimeout(() => {
+            const browser = Bowser.getParser(window.navigator.userAgent);
+            const browserInfo = browser.getBrowser();
+            const isValidBrowser = browser.satisfies({
+              chrome: ">65",
+              firefox: ">60",
+              edge: ">17",
+              safari: ">11",
+              opera: ">57"
+            });
+            clearInterval(this.state.intervalId);
+            this.setState({intervalId: null , endTesting: true, isValidBrowser, browserInfo });
+            VoxeetSdk.conference.leave();
+            navigator.mediaDevices.getUserMedia({ audio: true, video: this.state.audioOnly ? false : true })
+            .then((stream) => {
+                if (!this.state.audioOnly) {
+                  navigator.attachMediaStream(this.video, stream)
+                  this.setState({ videoHeight: stream.getVideoTracks()[0].getSettings().height, videoWidth: stream.getVideoTracks()[0].getSettings().width, userStream: stream })
+                } else {
+                  this.setState({ userStream: stream })
+                }
+                if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+                    return navigator.mediaDevices.enumerateDevices()
+                        .then(sources => {
+                        let audioDevices = new Array();
+                        let videoDevices = new Array();
+                        let outputDevices = new Array();
+                        sources.forEach(source => {
+                            if (source.kind === 'videoinput') {
+                              videoDevices.push(source);
+                            }
+                            if (source.kind === `audioinput`) {
+                              audioDevices.push(source);
+                            }
+                            if (source.kind === 'audiooutput') {
+                              outputDevices.push(source);
+                            }
+                        })
+                        this.setState({ audioDevices, outputDevices, videoDevices })
+                    });
+                }
+            })
+          }, 16000)
+        })
+        .catch((err) => {
+          this.setState({ error: "An error occured during joining the conference, please make sure that devices are allowed.", endTesting: true })
+        })
       })
-      .catch((err) => {
-        this.setState({ error: "An error occured during joining the conference, please make sure that devices are allowed.", endTesting: true })
-      })
+    })
   }
 
   reStartTesting() {
@@ -239,8 +259,10 @@ class VoxeetConferencePreCall extends Component {
 
   getStats() {
     const { statsAudio, statsVideo, rawDataStats } = this.state
-    Sdk.instance.stats(Sdk.instance.conference.id)
+    VoxeetSdk.conference.localStats()
       .then((stat) => {
+        // console.log("MEDIA STATS");
+        console.log(stat[0].stats);
         const tmp = stat[0].stats
         rawDataStats.push(stat)
         for (var i = 0; i < Object.keys(tmp).length; i++) {
@@ -251,7 +273,7 @@ class VoxeetConferencePreCall extends Component {
             })
             if (!exist) this.state.network.push(tmp[i])
           }
-          if (tmp[i].id.indexOf("RTCOutboundRTPAudioStream_") >= 0 || tmp[i].id.indexOf("outbound_rtp_audio_") >= 0) {
+          if (tmp[i].type === "outbound-rtp" && tmp[i].mediaType === "audio") {
             if ( ((tmp[i].timestamp - this.state.oldTimestampAudio) / 1000) > 0) {
               this.state.timestampAudio.push(moment.unix(tmp[i].timestamp/1000).format('h:mm:ss a'))
               let bitrateAudio = tmp[i].bytesSent - this.state.oldAudioValue / ((tmp[i].timestamp - this.state.oldTimestampAudio) / 1000)
@@ -264,7 +286,8 @@ class VoxeetConferencePreCall extends Component {
               });
             }
           }
-          if ((tmp[i].id.indexOf("RTCOutboundRTPVideoStream_") >= 0  || tmp[i].id.indexOf("outbound_rtp_video_") >= 0) && !this.state.audioOnly) {
+          if ((tmp[i].type === "outbound-rtp" && tmp[i].mediaType === "video") && !this.state.audioOnly) {
+            //console.log(tmp[i]);
             if ( ((tmp[i].timestamp - this.state.oldTimestampVideo) / 1000) > 0) {
               this.state.timestampVideo.push(moment.unix(tmp[i].timestamp/1000).format('h:mm:ss a'))
               let bitrateVideo = tmp[i].bytesSent - this.state.oldVideoValue / ((tmp[i].timestamp - this.state.oldTimestampVideo) / 1000)
@@ -277,10 +300,15 @@ class VoxeetConferencePreCall extends Component {
               });
             }
           }
+          if (tmp[i].type === "remote-inbound-rtp" && tmp[i].mediaType === "audio") {
+            var avgPL = ((tmp[i].packetsLost*1.0)/tmp[i].packetsReceived)*100;
+            //console.log("AVG PL: %f",avgPL);
+            this.state.mos = Math.max(1, Math.ceil(5 - (avgPL/4)));
+          }
           if (!this.state.audioOnly) this.state.bitrateVideoChart.update()
           this.state.bitrateAudioChart.update()
         }
-      });    
+      });
   }
 
   componentWillUnmount() {
@@ -346,9 +374,9 @@ class VoxeetConferencePreCall extends Component {
             </ul>
             <div className="mos-explanation">
                 The mean opinion score (MOS), is a value from 1 to 5 that indicates the average conference quality.
-                Very good better than 4. 
-                Good 3.5 to 4. 
-                Acceptable 2.5 to 3. 
+                Very good better than 4.
+                Good 3.5 to 4.
+                Acceptable 2.5 to 3.
                 Bad is below 2.5.
             </div>
           </div>
