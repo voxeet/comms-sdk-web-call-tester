@@ -77,7 +77,7 @@ class VoxeetConferencePreCall extends Component {
     var alreadyStarted = false;
 
     VoxeetSdk.session.open(userInfo).then(() => {
-      VoxeetSdk.conference.create({alias: "call-tester-" + Math.floor(Math.random() * 1001), params: { stats: true, videoCodec: "H264" }}).then(conference => {
+      VoxeetSdk.conference.create({alias: "call-tester-" + Math.floor(Math.random() * 1001), params: { stats: true, videoCodec: "H264", audioCodec: "G711" }}).then(conference => {
         VoxeetSdk.conference.on("participantUpdated", (user) => {
           //console.log("Participant: ",user);
           if(!alreadyStarted) {
@@ -111,7 +111,7 @@ class VoxeetConferencePreCall extends Component {
                 yAxes:[{
                     scaleLabel: {
                         display: true,
-                        labelString: 'kb/s',
+                        labelString: 'b/s',
                         fontFamily: "Open Sans",
                         fontSize: 14
                     },
@@ -273,6 +273,11 @@ class VoxeetConferencePreCall extends Component {
             })
             if (!exist) this.state.network.push(tmp[i])
           }
+          if (tmp[i].type == "candidate-pair") {
+            if(tmp[i].selected===true){
+              this.state.selectedId = tmp[i].localCandidateId;
+            }
+          }
           if (tmp[i].type === "outbound-rtp" && tmp[i].mediaType === "audio") {
             if ( ((tmp[i].timestamp - this.state.oldTimestampAudio) / 1000) > 0) {
               this.state.timestampAudio.push(moment.unix(tmp[i].timestamp/1000).format('h:mm:ss a'))
@@ -357,29 +362,29 @@ class VoxeetConferencePreCall extends Component {
                 }
           </div>
         }
-        { error == null &&
-          <div className="block">
-            <div className="title-section">Conference quality</div>
-            <ul className="list">
-              <li>
-                <div className="title">MOS</div>
-                <div className={(mos > 4 && "good") || ((mos > 3.5 && mos < 4) && "average-good") || ((mos > 2.5 && mos < 3) && "average") || ((mos < 2.5) && "bad") }>
-                  { mos == 0 ?
-                    "Calculating ..."
-                    :
-                    mos
-                  }
-                </div>
-              </li>
-            </ul>
-            <div className="mos-explanation">
-                The mean opinion score (MOS), is a value from 1 to 5 that indicates the average conference quality.
-                Very good better than 4.
-                Good 3.5 to 4.
-                Acceptable 2.5 to 3.
-                Bad is below 2.5.
-            </div>
-          </div>
+        { //error == null &&
+          // <div className="block">
+          //   <div className="title-section">Conference quality</div>
+          //   <ul className="list">
+          //     <li>
+          //       <div className="title">MOS</div>
+          //       <div className={(mos > 4 && "good") || ((mos > 3.5 && mos < 4) && "average-good") || ((mos > 2.5 && mos < 3) && "average") || ((mos < 2.5) && "bad") }>
+          //         { mos == 0 ?
+          //           "Calculating ..."
+          //           :
+          //           mos
+          //         }
+          //       </div>
+          //     </li>
+          //   </ul>
+          //   <div className="mos-explanation">
+          //       The mean opinion score (MOS), is a value from 1 to 5 that indicates the average conference quality.
+          //       Very good better than 4.
+          //       Good 3.5 to 4.
+          //       Acceptable 2.5 to 3.
+          //       Bad is below 2.5.
+          //   </div>
+          // </div>
         }
         { endTesting && (error == null) ?
           <div>
@@ -421,7 +426,7 @@ class VoxeetConferencePreCall extends Component {
                 </ul>
               </div>
 
-              { this.state.browserInfo.name != "Safari" &&
+              { //this.state.browserInfo.name != "Safari" &&
               <div className="block">
                 <div className="title-section">Network</div>
                 <ul className="list list-network">
@@ -435,7 +440,7 @@ class VoxeetConferencePreCall extends Component {
                         candidateType : {net.candidateType}
                       </div>
                       <div>
-                        networkType : {net.networkType || "N/A"}
+                        selected: {net.id === this.state.selectedId ? "yes" : "no"}
                       </div>
                     </li>)
                     })
@@ -472,7 +477,6 @@ class VoxeetConferencePreCall extends Component {
                     </div>
                 </div>
               </div>
-
 
               { !this.state.audioOnly &&
               <div className="block">
