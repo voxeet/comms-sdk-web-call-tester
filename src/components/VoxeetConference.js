@@ -262,7 +262,7 @@ class VoxeetConferencePreCall extends Component {
     VoxeetSdk.conference.localStats()
       .then((stat) => {
         // console.log("MEDIA STATS");
-        console.log(stat[0].stats);
+        // console.log(stat[0].stats);
         const tmp = stat[0].stats
         rawDataStats.push(stat)
         for (var i = 0; i < Object.keys(tmp).length; i++) {
