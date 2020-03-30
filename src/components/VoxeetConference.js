@@ -111,7 +111,7 @@ class VoxeetConferencePreCall extends Component {
                 yAxes:[{
                     scaleLabel: {
                         display: true,
-                        labelString: 'b/s',
+                        labelString: 'bps',
                         fontFamily: "Open Sans",
                         fontSize: 14
                     },
@@ -426,7 +426,7 @@ class VoxeetConferencePreCall extends Component {
                 </ul>
               </div>
 
-              { //this.state.browserInfo.name != "Safari" &&
+              { this.state.browserInfo.name != "Safari" &&
               <div className="block">
                 <div className="title-section">Network</div>
                 <ul className="list list-network">
@@ -521,7 +521,7 @@ class VoxeetConferencePreCall extends Component {
                     </div>
                   </li>
                   <li>
-                    <div className="title">Events received</div>
+                    <div className="title">Quality events received</div>
                     <div>
                     { mos != 0 ?
                       <div>👍</div>
