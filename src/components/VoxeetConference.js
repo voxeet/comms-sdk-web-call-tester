@@ -271,13 +271,12 @@ class VoxeetConferencePreCall extends Component {
             this.state.network.map((net, count) => {
               if (tmp[i].id == net.id) exist = true
             })
-            if (!exist) this.state.network.push(tmp[i])
-          }
-          if (tmp[i].type == "candidate-pair") {
-            if(tmp[i].selected===true){
-              this.state.selectedId = tmp[i].localCandidateId;
+            if (!exist) {
+              tmp[i].state = false;
+              this.state.network.push(tmp[i])
             }
           }
+
           if (tmp[i].type === "outbound-rtp" && tmp[i].mediaType === "audio") {
             if ( ((tmp[i].timestamp - this.state.oldTimestampAudio) / 1000) > 0) {
               this.state.timestampAudio.push(moment.unix(tmp[i].timestamp/1000).format('h:mm:ss a'))
@@ -313,9 +312,16 @@ class VoxeetConferencePreCall extends Component {
           if (!this.state.audioOnly) this.state.bitrateVideoChart.update()
           this.state.bitrateAudioChart.update()
         }
+        for (var i = 0; i < Object.keys(tmp).length; i++) {
+          if(tmp[i].type==="candidate-pair" && tmp[i].state==="succeeded") {
+            for(var j=0; j<this.state.network.length; j++) {
+              if(this.state.network[j].id === tmp[i].localCandidateId)
+                this.state.network[j].state = true;
+            }
+          }
+        }
       });
   }
-
   componentWillUnmount() {
     clearInterval(this.state.intervalId);
   }
@@ -426,7 +432,7 @@ class VoxeetConferencePreCall extends Component {
                 </ul>
               </div>
 
-              { this.state.browserInfo.name != "Safari" &&
+              { //this.state.browserInfo.name != "Safari" &&
               <div className="block">
                 <div className="title-section">Network</div>
                 <ul className="list list-network">
@@ -440,7 +446,7 @@ class VoxeetConferencePreCall extends Component {
                         candidateType : {net.candidateType}
                       </div>
                       <div>
-                        selected: {net.id === this.state.selectedId ? "yes" : "no"}
+                        succeeded:  {net.state ? "yes" : "no"}
                       </div>
                     </li>)
                     })
