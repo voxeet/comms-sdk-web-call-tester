@@ -2,7 +2,7 @@ Voxeet Call Tester
 =====================
 
 <p align="center">
-<img src="https://www.voxeet.com/wp-content/themes/wp-theme/assets/images/logo.svg" alt="Voxeet SDK logo" title="Voxeet SDK logo" width="100"/>
+<img src="https://voxeet.com/images/VoxeetDolbyLogo.svg" alt="Voxeet SDK logo" title="Voxeet SDK logo" width="100"/>
 </p>
 
 This project is a pre-call tester to check client readiness for connecting to Voxeet. The tool will check network, devices, and available network bandwidth for audio and video traffic)
