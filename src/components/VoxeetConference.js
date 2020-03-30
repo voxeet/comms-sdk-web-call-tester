@@ -440,7 +440,7 @@ class VoxeetConferencePreCall extends Component {
                     return(<li key={i}>
                       <div className="title">Protocol: {net.protocol}</div>
                       <div>
-                          IP : {net.ip || net.address}
+                          IP : {net.ip || net.address ? net.ip || net.address : "Uknown"}
                       </div>
                       <div>
                         candidateType : {net.candidateType}
