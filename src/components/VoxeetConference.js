@@ -1,19 +1,18 @@
-import React, { Component } from 'react';
-import '../assets/css/call-tester.less';
-import logo from '../assets/images/logo.svg';
-import AudioVuMeter from './AudioVuMeter'
-import Sdk from './sdk'
-import Chart from 'chart.js';
-import moment from 'moment';
-import ReactDOM from 'react-dom'
-import PropTypes from 'prop-types'
+import React, { Component } from "react";
+import "../assets/css/call-tester.less";
+import logo from "../assets/images/logo.svg";
+import AudioVuMeter from "./AudioVuMeter";
+import Sdk from "./sdk";
+import Chart from "chart.js";
+import moment from "moment";
+import ReactDOM from "react-dom";
+import PropTypes from "prop-types";
 import Bowser from "bowser";
 
-import VoxeetSdk from '@voxeet/voxeet-web-sdk'
-import { ok } from 'assert';
+import VoxeetSdk from "@voxeet/voxeet-web-sdk";
+import { ok } from "assert";
 
 class VoxeetConferencePreCall extends Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -23,207 +22,256 @@ class VoxeetConferencePreCall extends Component {
       endTesting: false,
       statsAudio: [],
       statsVideo: [],
-      oldAudioValue:0,
+      oldAudioValue: 0,
       mos: 0,
       userStream: null,
       initialized: false,
       oldVideoValue: 0,
-      oldTimestampVideo:0,
-      oldTimestampAudio:0,
+      oldTimestampVideo: 0,
+      oldTimestampAudio: 0,
       timestampVideo: [],
       timestampAudio: [],
       network: [],
       audioDevices: [],
       outputDevices: [],
       videoDevices: [],
-      rawDataStats: [],
+      rawDataStats: [],
       videoHeight: 480,
       bitrateAudioChart: null,
       bitrateVideoChart: null,
       videoWidth: 640,
       joinConferenceState: false,
       intervalId: null
-    }
-    this.startCallTest = this.startCallTest.bind(this)
-    this.getStats = this.getStats.bind(this)
-    this.reStartTesting = this.reStartTesting.bind(this)
-    this.handleChangeAudioOnly = this.handleChangeAudioOnly.bind(this)
-    this.initializeConference = this.initializeConference.bind(this)
-}
+    };
+    this.startCallTest = this.startCallTest.bind(this);
+    this.getStats = this.getStats.bind(this);
+    this.reStartTesting = this.reStartTesting.bind(this);
+    this.handleChangeAudioOnly = this.handleChangeAudioOnly.bind(this);
+    this.initializeConference = this.initializeConference.bind(this);
+  }
 
   componentDidMount() {
-    this.initializeConference()
+    this.initializeConference();
   }
 
   initializeConference() {
     VoxeetSdk.initialize(this.props.consumerKey, this.props.consumerSecret);
 
-    this.startCallTest()
-    this.setState({ initialized: true })
+    this.startCallTest();
+    this.setState({ initialized: true });
     //this.setState({mos: ind.mos});
   }
 
   handleChangeAudioOnly() {
     this.setState({
-      nextTestAudioOnly: !this.state.nextTestAudioOnly,
+      nextTestAudioOnly: !this.state.nextTestAudioOnly
     });
   }
 
-
   startCallTest() {
-    this.setState({ audioOnly: this.state.nextTestAudioOnly })
-    var constraints = {audio: true, video: this.state.nextTestAudioOnly ? false : true};
-    var userInfo = {name: "tester", "externalId":"btest"};
+    this.setState({ audioOnly: this.state.nextTestAudioOnly });
+    var constraints = {
+      audio: true,
+      video: this.state.nextTestAudioOnly ? false : true
+    };
+    var userInfo = { name: "tester", externalId: "btest" };
     var alreadyStarted = false;
 
     VoxeetSdk.session.open(userInfo).then(() => {
-      VoxeetSdk.conference.create({alias: "call-tester-" + Math.floor(Math.random() * 1001), params: { stats: true, videoCodec: "H264", audioCodec: "G711" }}).then(conference => {
-        VoxeetSdk.conference.on("participantUpdated", (user) => {
-          //console.log("Participant: ",user);
-          if(!alreadyStarted) {
-            alreadyStarted = true;
-            const video = {
-                            mandatory: {
-                              minWidth: 640,
-                              minHeight: 480,
-                              maxWidth: 1920,
-                              maxHeight: 1080,
-                              minFrameRate: 10,
-                              maxFrameRate: 30,
-                            }
-                          };
-            VoxeetSdk.conference.startVideo(user,video).then(() => {
-              console.log("Started video");
-            })
-            .catch((e) => {console.log(e)})
-          }
-        });
-      VoxeetSdk.conference.join(conference,{constrainst: constraints})
-        .then((info) => {
-          const optionsBitrate = {
-            spanGaps: true,
-            animation: false,
-            legend: {
-                display: false
-            },
-            draggable: true,
-            scales: {
-                yAxes:[{
-                    scaleLabel: {
-                        display: true,
-                        labelString: 'bps',
-                        fontFamily: "Open Sans",
-                        fontSize: 14
-                    },
-                    ticks: {
-                      beginAtZero: true,
-                      min: 0
-                  }
-                }],
-                xAxes:[{
-                    scaleLabel: {
-                        display: true,
-                        labelString: 'time',
-                        fontFamily: "Open Sans",
-                        fontSize: 14
-                    }
-                }]
-            }
-          }
-
-          var bitrateAudio = document.getElementById("bitrateAudio");
-          var bitrateAudioChart = new Chart(bitrateAudio, {
-              type: 'line',
-              options: optionsBitrate
-          });
-
-          bitrateAudioChart.data.datasets.push({
-            label: "bitrate_audio",
-            data: this.state.statsAudio,
-            pointBorderWidth: 3,
-            fill: false,
-            borderColor: "#e57373",
-            pointBorderColor: "#e57373",
-            pointBackgroundColor: "#e57373",
-            pointHoverRadius: 3,
-            pointHoverBorderWidth: 1,
-            pointRadius: 3,
-            borderWidth: 1
-          })
-
-          if (!this.state.nextTestAudioOnly) {
-            var bitrateVideo = document.getElementById("bitrateVideo");
-            var bitrateVideoChart = new Chart(bitrateVideo, {
-                type: 'line',
-                options: optionsBitrate
-            });
-
-            bitrateVideoChart.data.datasets.push({
-              label: "bitrate_video",
-              data: this.state.statsVideo,
-              pointBorderWidth: 3,
-              borderColor: "#e57373",
-              pointBorderColor: "#e57373",
-              pointBackgroundColor: "#e57373",
-              fill: false,
-              pointHoverRadius: 3,
-              pointHoverBorderWidth: 1,
-              pointRadius: 3,
-              borderWidth: 1
-            })
-          }
-
-          var intervalId = setInterval(this.getStats, 1000);
-          this.setState({intervalId: intervalId, joinConferenceState: true, bitrateAudioChart, bitrateVideoChart, audioOnly: this.state.nextTestAudioOnly});
-          setTimeout(() => {
-            const browser = Bowser.getParser(window.navigator.userAgent);
-            const browserInfo = browser.getBrowser();
-            const isValidBrowser = browser.satisfies({
-              chrome: ">65",
-              firefox: ">60",
-              edge: ">17",
-              safari: ">11",
-              opera: ">57"
-            });
-            clearInterval(this.state.intervalId);
-            this.setState({intervalId: null , endTesting: true, isValidBrowser, browserInfo });
-            VoxeetSdk.conference.leave();
-            navigator.mediaDevices.getUserMedia({ audio: true, video: this.state.audioOnly ? false : true })
-            .then((stream) => {
-                if (!this.state.audioOnly) {
-                  navigator.attachMediaStream(this.video, stream)
-                  this.setState({ videoHeight: stream.getVideoTracks()[0].getSettings().height, videoWidth: stream.getVideoTracks()[0].getSettings().width, userStream: stream })
-                } else {
-                  this.setState({ userStream: stream })
+      VoxeetSdk.conference
+        .create({
+          alias: "call-tester-" + Math.floor(Math.random() * 1001),
+          params: { stats: true, videoCodec: "H264", audioCodec: "G711" }
+        })
+        .then(conference => {
+          VoxeetSdk.conference.on("participantUpdated", user => {
+            //console.log("Participant: ",user);
+            if (!alreadyStarted) {
+              alreadyStarted = true;
+              const video = {
+                mandatory: {
+                  minWidth: 640,
+                  minHeight: 480,
+                  maxWidth: 1920,
+                  maxHeight: 1080,
+                  minFrameRate: 10,
+                  maxFrameRate: 30
                 }
-                if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-                    return navigator.mediaDevices.enumerateDevices()
+              };
+              VoxeetSdk.conference
+                .startVideo(user, video)
+                .then(() => {
+                  console.log("Started video");
+                })
+                .catch(e => {
+                  console.log(e);
+                });
+            }
+          });
+          VoxeetSdk.conference
+            .join(conference, { constrainst: constraints })
+            .then(info => {
+              const optionsBitrate = {
+                spanGaps: true,
+                animation: false,
+                legend: {
+                  display: false
+                },
+                draggable: true,
+                scales: {
+                  yAxes: [
+                    {
+                      scaleLabel: {
+                        display: true,
+                        labelString: "bps",
+                        fontFamily: "Open Sans",
+                        fontSize: 14
+                      },
+                      ticks: {
+                        beginAtZero: true,
+                        min: 0
+                      }
+                    }
+                  ],
+                  xAxes: [
+                    {
+                      scaleLabel: {
+                        display: true,
+                        labelString: "time",
+                        fontFamily: "Open Sans",
+                        fontSize: 14
+                      }
+                    }
+                  ]
+                }
+              };
+
+              var bitrateAudio = document.getElementById("bitrateAudio");
+              var bitrateAudioChart = new Chart(bitrateAudio, {
+                type: "line",
+                options: optionsBitrate
+              });
+
+              bitrateAudioChart.data.datasets.push({
+                label: "bitrate_audio",
+                data: this.state.statsAudio,
+                pointBorderWidth: 3,
+                fill: false,
+                borderColor: "#e57373",
+                pointBorderColor: "#e57373",
+                pointBackgroundColor: "#e57373",
+                pointHoverRadius: 3,
+                pointHoverBorderWidth: 1,
+                pointRadius: 3,
+                borderWidth: 1
+              });
+
+              if (!this.state.nextTestAudioOnly) {
+                var bitrateVideo = document.getElementById("bitrateVideo");
+                var bitrateVideoChart = new Chart(bitrateVideo, {
+                  type: "line",
+                  options: optionsBitrate
+                });
+
+                bitrateVideoChart.data.datasets.push({
+                  label: "bitrate_video",
+                  data: this.state.statsVideo,
+                  pointBorderWidth: 3,
+                  borderColor: "#e57373",
+                  pointBorderColor: "#e57373",
+                  pointBackgroundColor: "#e57373",
+                  fill: false,
+                  pointHoverRadius: 3,
+                  pointHoverBorderWidth: 1,
+                  pointRadius: 3,
+                  borderWidth: 1
+                });
+              }
+
+              var intervalId = setInterval(this.getStats, 1000);
+              this.setState({
+                intervalId: intervalId,
+                joinConferenceState: true,
+                bitrateAudioChart,
+                bitrateVideoChart,
+                audioOnly: this.state.nextTestAudioOnly
+              });
+              setTimeout(() => {
+                const browser = Bowser.getParser(window.navigator.userAgent);
+                const browserInfo = browser.getBrowser();
+                const isValidBrowser = browser.satisfies({
+                  chrome: ">65",
+                  firefox: ">60",
+                  edge: ">17",
+                  safari: ">11",
+                  opera: ">57"
+                });
+                clearInterval(this.state.intervalId);
+                this.setState({
+                  intervalId: null,
+                  endTesting: true,
+                  isValidBrowser,
+                  browserInfo
+                });
+                VoxeetSdk.conference.leave();
+                navigator.mediaDevices
+                  .getUserMedia({
+                    audio: true,
+                    video: this.state.audioOnly ? false : true
+                  })
+                  .then(stream => {
+                    if (!this.state.audioOnly) {
+                      navigator.attachMediaStream(this.video, stream);
+                      this.setState({
+                        videoHeight: stream.getVideoTracks()[0].getSettings()
+                          .height,
+                        videoWidth: stream.getVideoTracks()[0].getSettings()
+                          .width,
+                        userStream: stream
+                      });
+                    } else {
+                      this.setState({ userStream: stream });
+                    }
+                    if (
+                      navigator.mediaDevices &&
+                      navigator.mediaDevices.enumerateDevices
+                    ) {
+                      return navigator.mediaDevices
+                        .enumerateDevices()
                         .then(sources => {
-                        let audioDevices = new Array();
-                        let videoDevices = new Array();
-                        let outputDevices = new Array();
-                        sources.forEach(source => {
-                            if (source.kind === 'videoinput') {
+                          let audioDevices = new Array();
+                          let videoDevices = new Array();
+                          let outputDevices = new Array();
+                          sources.forEach(source => {
+                            if (source.kind === "videoinput") {
                               videoDevices.push(source);
                             }
                             if (source.kind === `audioinput`) {
                               audioDevices.push(source);
                             }
-                            if (source.kind === 'audiooutput') {
+                            if (source.kind === "audiooutput") {
                               outputDevices.push(source);
                             }
-                        })
-                        this.setState({ audioDevices, outputDevices, videoDevices })
-                    });
-                }
+                          });
+                          this.setState({
+                            audioDevices,
+                            outputDevices,
+                            videoDevices
+                          });
+                        });
+                    }
+                  });
+              }, 16000);
             })
-          }, 16000)
-        })
-        .catch((err) => {
-          this.setState({ error: "An error occured during joining the conference, please make sure that devices are allowed.", endTesting: true })
-        })
-      })
-    })
+            .catch(err => {
+              this.setState({
+                error:
+                  "An error occured during joining the conference, please make sure that devices are allowed.",
+                endTesting: true
+              });
+            });
+        });
+    });
   }
 
   reStartTesting() {
@@ -232,12 +280,12 @@ class VoxeetConferencePreCall extends Component {
       error: null,
       statsAudio: [],
       statsVideo: [],
-      oldAudioValue:0,
+      oldAudioValue: 0,
       mos: 0,
       userStream: null,
       oldVideoValue: 0,
-      oldTimestampVideo:0,
-      oldTimestampAudio:0,
+      oldTimestampVideo: 0,
+      oldTimestampAudio: 0,
       timestampVideo: [],
       network: [],
       timestampAudio: [],
@@ -249,126 +297,149 @@ class VoxeetConferencePreCall extends Component {
       videoWidth: 640,
       joinConferenceState: false,
       intervalId: null
-    })
+    });
     if (this.state.initialized) {
-      this.startCallTest()
+      this.startCallTest();
     } else {
-      this.initializeConference()
+      this.initializeConference();
     }
   }
 
   getStats() {
-    const { statsAudio, statsVideo, rawDataStats } = this.state
-    VoxeetSdk.conference.localStats()
-      .then((stat) => {
-        // console.log("MEDIA STATS");
-        // console.log(stat[0].stats);
-        const tmp = stat[0].stats
-        rawDataStats.push(stat)
-        for (var i = 0; i < Object.keys(tmp).length; i++) {
-          if (tmp[i].type == "local-candidate") {
-            let exist = false
-            this.state.network.map((net, count) => {
-              if (tmp[i].id == net.id) exist = true
-            })
-            if (!exist) {
-              tmp[i].state = false;
-              this.state.network.push(tmp[i])
-            }
+    const { statsAudio, statsVideo, rawDataStats } = this.state;
+    VoxeetSdk.conference.localStats().then(stat => {
+      // console.log("MEDIA STATS");
+      // console.log(stat[0].stats);
+      const tmp = stat[0].stats;
+      rawDataStats.push(stat);
+      for (var i = 0; i < Object.keys(tmp).length; i++) {
+        if (tmp[i].type == "local-candidate") {
+          let exist = false;
+          this.state.network.map((net, count) => {
+            if (tmp[i].id == net.id) exist = true;
+          });
+          if (!exist) {
+            tmp[i].state = false;
+            this.state.network.push(tmp[i]);
           }
+        }
 
-          if (tmp[i].type === "outbound-rtp" && tmp[i].mediaType === "audio") {
-            if ( ((tmp[i].timestamp - this.state.oldTimestampAudio) / 1000) > 0) {
-              this.state.timestampAudio.push(moment.unix(tmp[i].timestamp/1000).format('h:mm:ss a'))
-              let bitrateAudio = tmp[i].bytesSent - this.state.oldAudioValue / ((tmp[i].timestamp - this.state.oldTimestampAudio) / 1000)
-              this.state.oldAudioValue = tmp[i].bytesSent
-              this.state.oldTimestampAudio = tmp[i].timestamp
-              this.state.statsAudio.push(bitrateAudio * 8)
-              this.state.bitrateAudioChart.data.labels.push(moment.unix(tmp[i].timestamp/1000).format('h:mm:ss a'))
-              this.state.bitrateAudioChart.data.datasets.forEach((dataset) => {
-                dataset.data.push(bitrateAudio * 8);
-              });
-            }
-          }
-          if ((tmp[i].type === "outbound-rtp" && tmp[i].mediaType === "video") && !this.state.audioOnly) {
-            //console.log(tmp[i]);
-            if ( ((tmp[i].timestamp - this.state.oldTimestampVideo) / 1000) > 0) {
-              this.state.timestampVideo.push(moment.unix(tmp[i].timestamp/1000).format('h:mm:ss a'))
-              let bitrateVideo = tmp[i].bytesSent - this.state.oldVideoValue / ((tmp[i].timestamp - this.state.oldTimestampVideo) / 1000)
-              this.state.oldVideoValue = tmp[i].bytesSent
-              this.state.oldTimestampVideo = tmp[i].timestamp
-              this.state.statsVideo.push(bitrateVideo * 8)
-              this.state.bitrateVideoChart.data.labels.push(moment.unix(tmp[i].timestamp/1000).format('h:mm:ss a'))
-              this.state.bitrateVideoChart.data.datasets.forEach((dataset) => {
-                dataset.data.push(bitrateVideo * 8);
-              });
-            }
-          }
-          if (tmp[i].type === "remote-inbound-rtp" && tmp[i].mediaType === "audio") {
-            var avgPL = ((tmp[i].packetsLost*1.0)/tmp[i].packetsReceived)*100;
-            //console.log("AVG PL: %f",avgPL);
-            this.state.mos = Math.max(1, Math.ceil(5 - (avgPL/4)));
-          }
-          if (!this.state.audioOnly) this.state.bitrateVideoChart.update()
-          this.state.bitrateAudioChart.update()
-        }
-        for (var i = 0; i < Object.keys(tmp).length; i++) {
-          if(tmp[i].type==="candidate-pair" && tmp[i].state==="succeeded") {
-            for(var j=0; j<this.state.network.length; j++) {
-              if(this.state.network[j].id === tmp[i].localCandidateId)
-                this.state.network[j].state = true;
-            }
+        if (tmp[i].type === "outbound-rtp" && tmp[i].mediaType === "audio") {
+          if ((tmp[i].timestamp - this.state.oldTimestampAudio) / 1000 > 0) {
+            this.state.timestampAudio.push(
+              moment.unix(tmp[i].timestamp / 1000).format("h:mm:ss a")
+            );
+            let bitrateAudio =
+              tmp[i].bytesSent -
+              this.state.oldAudioValue /
+                ((tmp[i].timestamp - this.state.oldTimestampAudio) / 1000);
+            this.state.oldAudioValue = tmp[i].bytesSent;
+            this.state.oldTimestampAudio = tmp[i].timestamp;
+            this.state.statsAudio.push(bitrateAudio * 8);
+            this.state.bitrateAudioChart.data.labels.push(
+              moment.unix(tmp[i].timestamp / 1000).format("h:mm:ss a")
+            );
+            this.state.bitrateAudioChart.data.datasets.forEach(dataset => {
+              dataset.data.push(bitrateAudio * 8);
+            });
           }
         }
-      });
+        if (
+          tmp[i].type === "outbound-rtp" &&
+          tmp[i].mediaType === "video" &&
+          !this.state.audioOnly
+        ) {
+          //console.log(tmp[i]);
+          if ((tmp[i].timestamp - this.state.oldTimestampVideo) / 1000 > 0) {
+            this.state.timestampVideo.push(
+              moment.unix(tmp[i].timestamp / 1000).format("h:mm:ss a")
+            );
+            let bitrateVideo =
+              tmp[i].bytesSent -
+              this.state.oldVideoValue /
+                ((tmp[i].timestamp - this.state.oldTimestampVideo) / 1000);
+            this.state.oldVideoValue = tmp[i].bytesSent;
+            this.state.oldTimestampVideo = tmp[i].timestamp;
+            this.state.statsVideo.push(bitrateVideo * 8);
+            this.state.bitrateVideoChart.data.labels.push(
+              moment.unix(tmp[i].timestamp / 1000).format("h:mm:ss a")
+            );
+            this.state.bitrateVideoChart.data.datasets.forEach(dataset => {
+              dataset.data.push(bitrateVideo * 8);
+            });
+          }
+        }
+        if (
+          tmp[i].type === "remote-inbound-rtp" &&
+          tmp[i].mediaType === "audio"
+        ) {
+          var avgPL =
+            ((tmp[i].packetsLost * 1.0) / tmp[i].packetsReceived) * 100;
+          //console.log("AVG PL: %f",avgPL);
+          this.state.mos = Math.max(1, Math.ceil(5 - avgPL / 4));
+        }
+        if (!this.state.audioOnly) this.state.bitrateVideoChart.update();
+        this.state.bitrateAudioChart.update();
+      }
+      for (var i = 0; i < Object.keys(tmp).length; i++) {
+        if (tmp[i].type === "candidate-pair" && tmp[i].state === "succeeded") {
+          for (var j = 0; j < this.state.network.length; j++) {
+            if (this.state.network[j].id === tmp[i].localCandidateId)
+              this.state.network[j].state = true;
+          }
+        }
+      }
+    });
   }
   componentWillUnmount() {
     clearInterval(this.state.intervalId);
   }
 
   render() {
-    const { endTesting, statsAudio, statsVideo, error, mos } = this.state
+    const { endTesting, statsAudio, statsVideo, error, mos } = this.state;
     return (
       <div className="container">
         <div className="container-logo">
           <img src={logo} />
         </div>
-        { endTesting &&
+        {endTesting && (
           <div className="block-start">
             <div className="container-start-test">
-              <input type="checkbox" id="audioOnly" checked={this.state.nextTestAudioOnly} onChange={this.handleChangeAudioOnly} />
-              <label id="audioOnlyLabel" htmlFor="audioOnly">Audio Only</label>
+              <input
+                type="checkbox"
+                id="audioOnly"
+                checked={this.state.nextTestAudioOnly}
+                onChange={this.handleChangeAudioOnly}
+              />
+              <label id="audioOnlyLabel" htmlFor="audioOnly">
+                Audio Only
+              </label>
             </div>
             <div className="container-start-test">
-              <button onClick={this.reStartTesting} className="btn">Restart testing</button>
+              <button onClick={this.reStartTesting} className="btn">
+                Restart testing
+              </button>
             </div>
           </div>
-        }
-        { error != null &&
-          <div className="block-error">
-              { error }
-          </div>
-        }
-        { error == null &&
+        )}
+        {error != null && <div className="block-error">{error}</div>}
+        {error == null && (
           <div className="block block-canvas-graph">
-                <div className="title-section">Quality call indicator</div>
-                <div className="container-graph">
-                  <div className="title-graph">
-                    Audio bitrate
-                  </div>
-                  <canvas id="bitrateAudio" width="50%" height="40"></canvas>
-                </div>
-                { !this.state.audioOnly &&
-                <div className="container-graph">
-                  <div className="title-graph">
-                    Video bitrate
-                  </div>
-                  <canvas id="bitrateVideo" width="50%" height="40"></canvas>
-                </div>
-                }
+            <div className="title-section">Quality call indicator</div>
+            <div className="container-graph">
+              <div className="title-graph">Audio bitrate</div>
+              <canvas id="bitrateAudio" width="50%" height="40"></canvas>
+            </div>
+            {!this.state.audioOnly && (
+              <div className="container-graph">
+                <div className="title-graph">Video bitrate</div>
+                <canvas id="bitrateVideo" width="50%" height="40"></canvas>
+              </div>
+            )}
           </div>
-        }
-        { //error == null &&
+        )}
+        {
+          //error == null &&
           // <div className="block">
           //   <div className="title-section">Conference quality</div>
           //   <ul className="list">
@@ -392,141 +463,158 @@ class VoxeetConferencePreCall extends Component {
           //   </div>
           // </div>
         }
-        { endTesting && (error == null) ?
+        {endTesting && error == null ? (
           <div>
             <div>
-              <div className="container-stats">
-            </div>
+              <div className="container-stats"></div>
 
-            <div className="block">
+              <div className="block">
                 <div className="title-section">Software Setup</div>
                 <ul className="list">
                   <li>
                     <div className="title">Browser compatibility</div>
                     <div>
-                    { this.state.isValidBrowser ?
-                      <div>👍</div>
-                      :
-                      <div>👎</div>
-                    }
+                      {this.state.isValidBrowser ? (
+                        <div>👍</div>
+                      ) : (
+                        <div>👎</div>
+                      )}
                     </div>
                   </li>
                   <li>
-                      <div className="title">Browser name</div>
-                      <div>
-                        {this.state.browserInfo && this.state.browserInfo.name}
-                      </div>
+                    <div className="title">Browser name</div>
+                    <div>
+                      {this.state.browserInfo && this.state.browserInfo.name}
+                    </div>
                   </li>
                   <li>
-                      <div className="title">Platform</div>
-                      <div>
-                        {navigator.platform}
-                      </div>
+                    <div className="title">Platform</div>
+                    <div>{navigator.platform}</div>
                   </li>
                   <li>
-                      <div className="title">Browser version</div>
-                      <div>
-                        {this.state.browserInfo && this.state.browserInfo.version}
-                      </div>
+                    <div className="title">Browser version</div>
+                    <div>
+                      {this.state.browserInfo && this.state.browserInfo.version}
+                    </div>
                   </li>
                 </ul>
               </div>
 
-              { //this.state.browserInfo.name != "Safari" &&
-              <div className="block">
-                <div className="title-section">Network</div>
-                <ul className="list list-network">
-                  { this.state.network.map((net, i) => {
-                    return(<li key={i}>
-                      <div className="title">Protocol: {net.protocol}</div>
-                      <div>
-                          IP : {net.ip || net.address ? net.ip || net.address : "Uknown"}
-                      </div>
-                      <div>
-                        candidateType : {net.candidateType}
-                      </div>
-                      <div>
-                        succeeded:  {net.state ? "yes" : "no"}
-                      </div>
-                    </li>)
-                    })
-                  }
-                </ul>
-              </div>
+              {
+                //this.state.browserInfo.name != "Safari" &&
+                <div className="block">
+                  <div className="title-section">Network</div>
+                  <ul className="list list-network">
+                    {this.state.network.map((net, i) => {
+                      return (
+                        <li key={i}>
+                          <div className="title">Protocol: {net.protocol}</div>
+                          <div>
+                            IP :{" "}
+                            {net.ip || net.address
+                              ? net.ip || net.address
+                              : "Uknown"}
+                          </div>
+                          <div>candidateType : {net.candidateType}</div>
+                          <div>succeeded: {net.state ? "yes" : "no"}</div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               }
-
 
               <div className="block">
                 <div className="title-section">Hardware Setup Audio</div>
-                    <div className="contain-audio">
-                      <div className="container-input">
-                        <label htmlFor="video">Microphone :</label>
-                        <select name="audio" className="form-control" disabled={true} onChange={this.setAudioDevice}>
-                          {this.state.audioDevices.map((device, i) =>
-                            <option key={i} value={device.deviceId}>{device.label}</option>
-                          )}
-                        </select>
-                        <AudioVuMeter userStream={this.state.userStream}/>
-                      </div>
-
-                      { this.state.browserInfo.name == "Chrome" &&
-                        <div className="container-output">
-                          <label htmlFor="video">Output :</label>
-                          <select name="output" className="form-control" disabled={true} onChange={this.setOutputDevice}>
-                          {this.state.outputDevices.map((device, i) =>
-                            <option key={i} value={device.deviceId}>{device.label}</option>
-                          )}
-                          </select>
-                        </div>
-                      }
-
-                    </div>
-                </div>
-              </div>
-
-              { !this.state.audioOnly &&
-              <div className="block">
-                <div className="title-section">Hardware Setup Video</div>
-                  <div className="container-video">
-                    <video className="video-participant"
-                      width="360"
-                      id="video-settings"
-                      playsInline
-                      height="280"
-                      ref={ref => this.video = ref}
-                      autoPlay
-                      muted
-                    />
+                <div className="contain-audio">
+                  <div className="container-input">
+                    <label htmlFor="video">Microphone :</label>
+                    <select
+                      name="audio"
+                      className="form-control"
+                      disabled={true}
+                      onChange={this.setAudioDevice}
+                    >
+                      {this.state.audioDevices.map((device, i) => (
+                        <option key={i} value={device.deviceId}>
+                          {device.label}
+                        </option>
+                      ))}
+                    </select>
+                    <AudioVuMeter userStream={this.state.userStream} />
                   </div>
-                  <div className="form-group">
-                    <div>
-                      <select name="video" className="form-control" disabled={true}>
-                        {this.state.videoDevices.map((device, i) =>
-                          <option key={i} value={device.deviceId}>{device.label}</option>
-                        )}
+
+                  {this.state.browserInfo.name == "Chrome" && (
+                    <div className="container-output">
+                      <label htmlFor="video">Output :</label>
+                      <select
+                        name="output"
+                        className="form-control"
+                        disabled={true}
+                        onChange={this.setOutputDevice}
+                      >
+                        {this.state.outputDevices.map((device, i) => (
+                          <option key={i} value={device.deviceId}>
+                            {device.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
-                    <div>
-                      Resolution: {this.state.videoWidth}x{this.state.videoHeight}
-                    </div>
-                  </div>
+                  )}
+                </div>
               </div>
-              }
+            </div>
 
+            {!this.state.audioOnly && (
               <div className="block">
-                <div className="title-section">Communication with conference</div>
-                <ul className="list">
-                  <li>
-                    <div className="title">Create / Join conference</div>
-                    <div>
-                    { this.state.joinConferenceState ?
+                <div className="title-section">Hardware Setup Video</div>
+                <div className="container-video">
+                  <video
+                    className="video-participant"
+                    width="360"
+                    id="video-settings"
+                    playsInline
+                    height="280"
+                    ref={ref => (this.video = ref)}
+                    autoPlay
+                    muted
+                  />
+                </div>
+                <div className="form-group">
+                  <div>
+                    <select
+                      name="video"
+                      className="form-control"
+                      disabled={true}
+                    >
+                      {this.state.videoDevices.map((device, i) => (
+                        <option key={i} value={device.deviceId}>
+                          {device.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    Resolution: {this.state.videoWidth}x{this.state.videoHeight}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="block">
+              <div className="title-section">Communication with conference</div>
+              <ul className="list">
+                <li>
+                  <div className="title">Create / Join conference</div>
+                  <div>
+                    {this.state.joinConferenceState ? (
                       <div>👍</div>
-                      :
+                    ) : (
                       <div>👎</div>
-                    }
-                    </div>
-                  </li>
-                  <li>
+                    )}
+                  </div>
+                </li>
+                {/*<li>
                     <div className="title">Quality events received</div>
                     <div>
                     { mos != 0 ?
@@ -534,23 +622,27 @@ class VoxeetConferencePreCall extends Component {
                       :
                       <div>👎</div>
                     }
-                    </div>
-                  </li>
-                </ul>
-              </div>
-          </div>
-
-        :
-         error == null &&
-          <div className="block-loading">
-            <div id="loader-container"><div className="loader"></div></div>
-            <div className="state-testing">
-              Test is running, please wait<span className="one">.</span><span className="two">.</span><span className="three">.</span>​
+                  </div>
+                  </li>*/}
+              </ul>
             </div>
           </div>
-      }
+        ) : (
+          error == null && (
+            <div className="block-loading">
+              <div id="loader-container">
+                <div className="loader"></div>
+              </div>
+              <div className="state-testing">
+                Test is running, please wait<span className="one">.</span>
+                <span className="two">.</span>
+                <span className="three">.</span>​
+              </div>
+            </div>
+          )
+        )}
       </div>
-    )
+    );
   }
 }
 
@@ -558,9 +650,8 @@ VoxeetConferencePreCall.propTypes = {
   audioOnly: PropTypes.bool.isRequired,
   consumerKey: PropTypes.string.isRequired,
   consumerSecret: PropTypes.string.isRequired
-}
+};
 
-VoxeetConferencePreCall.defaultProps = {
-}
+VoxeetConferencePreCall.defaultProps = {};
 
 export default VoxeetConferencePreCall;
