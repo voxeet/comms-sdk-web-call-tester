@@ -84,8 +84,8 @@ class VoxeetConferencePreCall extends Component {
             alreadyStarted = true;
             const video = {
                             mandatory: {
-                              minWidth: 1920,
-                              minHeight: 1080,
+                              minWidth: 640,
+                              minHeight: 480,
                               maxWidth: 1920,
                               maxHeight: 1080,
                               minFrameRate: 10,
