@@ -51,29 +51,28 @@ class Home extends Component {
                 </div>
                 <div className="block">
                   <div className="container-explanation">
-                      <div className="container-explanation-title">Connexion</div>
+                      <div className="container-explanation-title">Connection</div>
                   </div>
                   <div className="container-explanation">
                       <div className="container-explanation-title">Hardware</div>
                   </div>
                   <div className="container-explanation">
-                      <div className="container-explanation-title">Quality call</div>
+                      <div className="container-explanation-title">Call Quality</div>
                   </div>
                   <div className="container-explanations">
                     <div className="container-explanation">
                       <span>
-                        We will try a basic connexion to a conference. 
-                        Start a test conference and retrieve informations about this one.
+                        This tool attempts to connect to a conference for 30 seconds and obtain information about the network connection. 
                       </span>
                     </div>
                     <div className="container-explanation">
                       <span>
-                        We will get your devices informations, to see hardware rights. Please make sure to allow camera and microphone when starting the test.
+                        This tool gathers your media device information. Please make sure to allow camera and microphone access when starting the test.
                       </span>
                     </div>
                     <div className="container-explanation">
                       <span>
-                        During the test, we will start a conference of 30 seconds. A graph will be displayed to see the Audio and Video bitrate.
+                        This tool checks if you have a good network connection. A graph will be displayed to present the Audio and Video bitrate.
                       </span>
                     </div>
                   </div>
