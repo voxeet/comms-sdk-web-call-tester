@@ -309,8 +309,8 @@ class VoxeetConferencePreCall extends Component {
     const { statsAudio, statsVideo, rawDataStats } = this.state;
     VoxeetSdk.conference.localStats().then(stat => {
       // console.log("MEDIA STATS");
-      // console.log(stat[0].stats);
-      const tmp = stat[0].stats;
+      const tmp = Array.from(stat.values())[0];
+      //console.log(tmp);
       rawDataStats.push(stat);
       for (var i = 0; i < Object.keys(tmp).length; i++) {
         if (tmp[i].type == "local-candidate") {
@@ -513,7 +513,7 @@ class VoxeetConferencePreCall extends Component {
                             IP :{" "}
                             {net.ip || net.address
                               ? net.ip || net.address
-                              : "Uknown"}
+                              : "Unknown"}
                           </div>
                           <div>candidateType : {net.candidateType}</div>
                           <div>succeeded: {net.state ? "yes" : "no"}</div>
