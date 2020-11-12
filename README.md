@@ -2,7 +2,7 @@ Dolby<span>.io</span> Call Tester
 =====================
 
 <p align="center">
-<img src="https://cdn.dolby.io/wp-content/uploads/2020/05/Dolbyio-white-horizontal-e1589344433251.jpg" alt="Dolby.io logo" title="Dolby.io logo" width="200"/>
+<img src="wiki/dolbyio.jpeg" alt="Dolby.io logo" title="Dolby.io logo" width="200"/>
 </p>
 
 This project is a pre-call tester to check client readiness for connecting to dolby<span>.io</span>. The tool will check network, devices, and available network bandwidth for audio and video traffic.

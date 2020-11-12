@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import "../assets/css/call-tester.less";
-import logo from "../assets/images/logo.svg";
+import logo from "../assets/images/logo.png";
 import AudioVuMeter from "./AudioVuMeter";
 import Sdk from "./sdk";
 import Chart from "chart.js";
