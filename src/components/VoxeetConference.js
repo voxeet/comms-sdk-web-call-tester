@@ -1,16 +1,13 @@
 import React, { Component } from "react";
 import "../assets/css/call-tester.less";
-import logo from "../assets/images/logo.svg";
+import logo from "../assets/images/logo.png";
 import AudioVuMeter from "./AudioVuMeter";
-import Sdk from "./sdk";
 import Chart from "chart.js";
 import moment from "moment";
-import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 import Bowser from "bowser";
 
 import VoxeetSdk from "@voxeet/voxeet-web-sdk";
-import { ok } from "assert";
 
 class VoxeetConferencePreCall extends Component {
   constructor(props) {
@@ -309,8 +306,8 @@ class VoxeetConferencePreCall extends Component {
     const { statsAudio, statsVideo, rawDataStats } = this.state;
     VoxeetSdk.conference.localStats().then(stat => {
       // console.log("MEDIA STATS");
-      // console.log(stat[0].stats);
-      const tmp = stat[0].stats;
+      const tmp = Array.from(stat.values())[0];
+      //console.log(tmp);
       rawDataStats.push(stat);
       for (var i = 0; i < Object.keys(tmp).length; i++) {
         if (tmp[i].type == "local-candidate") {
@@ -513,7 +510,7 @@ class VoxeetConferencePreCall extends Component {
                             IP :{" "}
                             {net.ip || net.address
                               ? net.ip || net.address
-                              : "Uknown"}
+                              : "Unknown"}
                           </div>
                           <div>candidateType : {net.candidateType}</div>
                           <div>succeeded: {net.state ? "yes" : "no"}</div>
