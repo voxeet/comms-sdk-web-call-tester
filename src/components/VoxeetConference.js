@@ -2,15 +2,12 @@ import React, { Component } from "react";
 import "../assets/css/call-tester.less";
 import logo from "../assets/images/logo.png";
 import AudioVuMeter from "./AudioVuMeter";
-import Sdk from "./sdk";
 import Chart from "chart.js";
 import moment from "moment";
-import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 import Bowser from "bowser";
 
 import VoxeetSdk from "@voxeet/voxeet-web-sdk";
-import { ok } from "assert";
 
 class VoxeetConferencePreCall extends Component {
   constructor(props) {

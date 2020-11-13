@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types'
 import '../assets/css/call-tester.less';
 import logo from '../assets/images/logo.png';
 import VoxeetConference from './VoxeetConference'
