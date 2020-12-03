@@ -23,6 +23,7 @@ class VoxeetConferencePreCall extends Component {
       mos: 0,
       userStream: null,
       initialized: false,
+      sdkVersion: null,
       oldVideoValue: 0,
       oldTimestampVideo: 0,
       oldTimestampAudio: 0,
@@ -58,7 +59,10 @@ class VoxeetConferencePreCall extends Component {
     VoxeetSdk.initialize(this.props.consumerKey, this.props.consumerSecret);
 
     this.startCallTest();
-    this.setState({ initialized: true });
+    this.setState({
+      initialized: true,
+      sdkVersion: VoxeetSdk.version
+    });
     //this.setState({mos: ind.mos});
   }
 
@@ -517,11 +521,16 @@ class VoxeetConferencePreCall extends Component {
                       {this.state.browserInfo && this.state.browserInfo.version}
                     </div>
                   </li>
+                  <li>
+                    <div className="title">Voxeet SDK version</div>
+                    <div>
+                      {this.state.sdkVersion}
+                    </div>
+                  </li>
                 </ul>
               </div>
 
-              {
-                //this.state.browserInfo.name != "Safari" &&
+              {this.state.network.length > 0 && (
                 <div className="block">
                   <div className="title-section">Network</div>
                   <ul className="list list-network">
@@ -530,19 +539,19 @@ class VoxeetConferencePreCall extends Component {
                         <li key={i}>
                           <div className="title">Protocol: {net.protocol}</div>
                           <div>
-                            IP :{" "}
+                            IP: {" "}
                             {net.ip || net.address
                               ? net.ip || net.address
                               : "Unknown"}
                           </div>
-                          <div>candidateType : {net.candidateType}</div>
+                          <div>candidateType: {net.candidateType}</div>
                           <div>succeeded: {net.state ? "yes" : "no"}</div>
                         </li>
                       );
                     })}
                   </ul>
                 </div>
-              }
+              )}
 
               <div className="block">
                 <div className="title-section">Hardware Setup Audio</div>
