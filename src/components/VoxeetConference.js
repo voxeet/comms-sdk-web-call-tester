@@ -31,8 +31,10 @@ class VoxeetConferencePreCall extends Component {
       timestampAudio: [],
       network: [],
       audioDevices: [],
+      selectedAudioDevice: null,
       outputDevices: [],
       videoDevices: [],
+      selectedVideoDevice: null,
       rawDataStats: [],
       videoHeight: 480,
       bitrateAudioChart: null,
@@ -123,12 +125,8 @@ class VoxeetConferencePreCall extends Component {
 
             VoxeetSdk.conference
               .startVideo(user, video)
-              .then(() => {
-                console.log("Started video");
-              })
-              .catch(e => {
-                console.log(e);
-              });
+              .then(() => console.log("Video started"))
+              .catch(e => console.log(e));
           }
         });
         
@@ -247,15 +245,24 @@ class VoxeetConferencePreCall extends Component {
                   if (!this.state.audioOnly) {
                     navigator.attachMediaStream(this.video, stream);
                     this.setState({
-                      videoHeight: stream.getVideoTracks()[0].getSettings()
-                        .height,
-                      videoWidth: stream.getVideoTracks()[0].getSettings()
-                        .width,
+                      videoHeight: stream.getVideoTracks()[0].getSettings().height,
+                      videoWidth: stream.getVideoTracks()[0].getSettings().width,
                       userStream: stream
                     });
                   } else {
                     this.setState({ userStream: stream });
                   }
+
+                  let selectedVideoDeviceLabel = null;
+                  let selectedAudioDeviceLabel = null;
+                  stream.getTracks().forEach(track => {
+                    if ("video" == track.kind) {
+                      selectedVideoDeviceLabel = track.label
+                    } else if ("audio" == track.kind) {
+                      selectedAudioDeviceLabel = track.label;
+                    }
+                  });
+
                   if (
                     navigator.mediaDevices &&
                     navigator.mediaDevices.enumerateDevices
@@ -266,21 +273,33 @@ class VoxeetConferencePreCall extends Component {
                         let audioDevices = new Array();
                         let videoDevices = new Array();
                         let outputDevices = new Array();
+                        let selectedVideoDevice = "";
+                        let selectedAudioDevice = "";
+
                         sources.forEach(source => {
                           if (source.kind === "videoinput") {
                             videoDevices.push(source);
+                            if (selectedVideoDeviceLabel == source.label) {
+                              selectedVideoDevice = source.deviceId;
+                            }
                           }
                           if (source.kind === `audioinput`) {
                             audioDevices.push(source);
+                            if (selectedAudioDeviceLabel == source.label) {
+                              selectedAudioDevice = source.deviceId;
+                            }
                           }
                           if (source.kind === "audiooutput") {
                             outputDevices.push(source);
                           }
                         });
+
                         this.setState({
                           audioDevices,
                           outputDevices,
-                          videoDevices
+                          videoDevices,
+                          selectedVideoDevice,
+                          selectedAudioDevice
                         });
                       });
                   }
@@ -313,9 +332,11 @@ class VoxeetConferencePreCall extends Component {
       network: [],
       timestampAudio: [],
       audioDevices: [],
+      selectedAudioDevice: null,
       rawDataStats: [],
       outputDevices: [],
       videoDevices: [],
+      selectedVideoDevice: null,
       videoHeight: 480,
       videoWidth: 640,
       createConferenceState: false,
@@ -557,20 +578,19 @@ class VoxeetConferencePreCall extends Component {
                 <div className="title-section">Hardware Setup Audio</div>
                 <div className="contain-audio">
                   <div className="container-input">
-                    <label htmlFor="video">Microphone :</label>
-                    <select
-                      name="audio"
-                      className="form-control"
-                      disabled={true}
-                      onChange={this.setAudioDevice}
-                    >
+                    <label htmlFor="audioDevices">Microphone:</label>
+                    <ul id="audioDevices">
                       {this.state.audioDevices.map((device, i) => (
-                        <option key={i} value={device.deviceId}>
-                          {device.label}
-                        </option>
+                        this.state.selectedAudioDevice == device.deviceId ? (
+                          <li>✅ {device.label}</li>
+                        ) : (
+                          <li>❌ {device.label}</li>
+                        )
                       ))}
-                    </select>
-                    <AudioVuMeter userStream={this.state.userStream} />
+                      <li>
+                        <AudioVuMeter userStream={this.state.userStream} />
+                      </li>
+                    </ul>
                   </div>
 
                   {this.state.browserInfo.name == "Chrome" && (
@@ -611,17 +631,16 @@ class VoxeetConferencePreCall extends Component {
                 </div>
                 <div className="form-group">
                   <div>
-                    <select
-                      name="video"
-                      className="form-control"
-                      disabled={true}
-                    >
+                    <label htmlFor="videoDevices">Camera:</label>
+                    <ul id="videoDevices">
                       {this.state.videoDevices.map((device, i) => (
-                        <option key={i} value={device.deviceId}>
-                          {device.label}
-                        </option>
+                        this.state.selectedVideoDevice == device.deviceId ? (
+                          <li>✅ {device.label}</li>
+                        ) : (
+                          <li>❌ {device.label}</li>
+                        )
                       ))}
-                    </select>
+                    </ul>
                   </div>
                   <div>
                     Resolution: {this.state.videoWidth}x{this.state.videoHeight}
