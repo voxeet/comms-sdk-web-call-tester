@@ -9,21 +9,41 @@ class Home extends Component {
       super(props);
       this.state = {
         startTest: false,
+        // Set your Consumer Key and Secret here
         consumerKey: "CONSUMER_KEY",
         consumerSecret: "CONSUMER_SECRET",
-        audioOnly: false
+        audioOnly: false,
+        promptKeys: true
+      }
+      this.state = {
+        audioOnly: false,
+        promptKeys: this.state.consumerKey.includes("CONSUMER_") || this.state.consumerSecret.includes("CONSUMER_")
       }
       this.startTesting = this.startTesting.bind(this)
       this.handleChangeAudioOnly = this.handleChangeAudioOnly.bind(this)
+      this.handleChangeConsumerKey = this.handleChangeConsumerKey.bind(this)
+      this.handleChangeConsumerSecret = this.handleChangeConsumerSecret.bind(this)
   }
 
   startTesting() {
     this.setState({ startTest: true })
   }
 
-  handleChangeAudioOnly() {
+  handleChangeAudioOnly(e) {
     this.setState({
-      audioOnly: !this.state.audioOnly,
+      audioOnly: e.target.checked
+    });
+  }
+
+  handleChangeConsumerKey(e) {
+    this.setState({
+      consumerKey: e.target.value,
+    });
+  }
+
+  handleChangeConsumerSecret(e) {
+    this.setState({
+      consumerSecret: e.target.value,
     });
   }
 
@@ -40,13 +60,22 @@ class Home extends Component {
                   <img src={logo} />
                 </div>
                 <div className="block-start">
-                  <div className="container-start-test">
-                    <input type="checkbox" id="audioOnly" checked={this.state.audioOnly} onChange={this.handleChangeAudioOnly} />
-                    <label id="audioOnlyLabel" htmlFor="audioOnly">Audio Only</label>
-                  </div>
-                  <div className="container-start-test">
-                    <button onClick={this.startTesting} className="btn">Start testing</button>
-                  </div>
+                    { this.state.promptKeys &&
+                      <div className="container-start-test">
+                        <label id="consumerKeyLabel" htmlFor="consumerKey">Consumer Key</label>
+                        <input type="text" id="consumerKey" onChange={this.handleChangeConsumerKey} />
+                        <br />
+
+                        <label id="consumerSecretLabel" htmlFor="consumerSecret">Consumer Secret</label>
+                        <input type="password" id="consumerSecret" onChange={this.handleChangeConsumerSecret} />
+                      </div>
+                    }
+                    <div className="container-start-test">
+                      <input type="checkbox" id="audioOnly" checked={this.state.audioOnly} onChange={this.handleChangeAudioOnly} />
+                      <label id="audioOnlyLabel" htmlFor="audioOnly">Audio Only</label>
+                      
+                      <button onClick={this.startTesting} className="btn">Start testing</button>
+                    </div>
                 </div>
                 <div className="block">
                   <div className="container-explanation">
@@ -75,6 +104,11 @@ class Home extends Component {
                       </span>
                     </div>
                   </div>
+                </div>
+                <div className="block-footer">
+                    <div className="container-start-test">
+                      <p>Powered by <a href="https://dolby.io" target="_blank">dolby.io</a></p>
+                    </div>
                 </div>
               </div>
             }
