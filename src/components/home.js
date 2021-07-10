@@ -107,7 +107,7 @@ class Home extends Component {
                 </div>
                 <div className="block-footer">
                     <div className="container-start-test">
-                      <p>Powered by <a href="https://dolby.io" target="_blank">dolby.io</a></p>
+                      <p>Powered by <a href="https://dolby.io" target="_blank">dolby.io</a> - <a href="https://github.com/voxeet/voxeet-sdk-web-tool" target="_blank">GitHub repo</a></p>
                     </div>
                 </div>
               </div>

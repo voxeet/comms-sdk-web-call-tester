@@ -131,7 +131,7 @@ class VoxeetConferencePreCall extends Component {
         });
         
         VoxeetSdk.conference
-          .join(conference, { constrainst: constraints })
+          .join(conference, { constraints: constraints })
           .then(info => {
             const optionsBitrate = {
               spanGaps: true,
@@ -309,7 +309,7 @@ class VoxeetConferencePreCall extends Component {
           .catch(err => {
             this.setState({
               error:
-                "An error occured during joining the conference, please make sure that devices are allowed.",
+                "An error occurred during joining the conference, please make sure that devices are allowed.",
               endTesting: true
             });
           });
@@ -545,7 +545,7 @@ class VoxeetConferencePreCall extends Component {
                   <li>
                     <div className="title">Voxeet SDK version</div>
                     <div>
-                      {this.state.sdkVersion}
+                      <a target="_blank" href={"https://www.npmjs.com/package/@voxeet/voxeet-web-sdk/v/" + this.state.sdkVersion}>{this.state.sdkVersion}</a>
                     </div>
                   </li>
                 </ul>
@@ -693,6 +693,12 @@ class VoxeetConferencePreCall extends Component {
                   </div>
                   </li>*/}
               </ul>
+            </div>
+
+            <div className="block-footer">
+                <div className="container-start-test">
+                  <p>Powered by <a href="https://dolby.io" target="_blank">dolby.io</a> - <a href="https://github.com/voxeet/voxeet-sdk-web-tool" target="_blank">GitHub repo</a></p>
+                </div>
             </div>
           </div>
         ) : (

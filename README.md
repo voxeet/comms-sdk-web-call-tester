@@ -71,4 +71,6 @@ After about 30 seconds, you will see the result showing up on the screen.
 <img src="wiki/test-result.png" alt="Dolby.io logo" title="Dolby.io logo" width="640"/>
 </p>
 
-© Dolby<span>.io</span>, 2020
+## GitHub Pages
+
+You can test this project directly on our GitHub pages: https://voxeet.github.io/voxeet-sdk-web-tool/
