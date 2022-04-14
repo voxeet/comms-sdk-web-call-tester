@@ -99,7 +99,7 @@ class VoxeetConferencePreCall extends Component {
       audio: true,
       video: this.state.nextTestAudioOnly ? false : true
     };
-    var alreadyStarted = false;
+    var alreadyStarted = constraints.video;
 
     VoxeetSdk.conference
       .create({
@@ -112,7 +112,6 @@ class VoxeetConferencePreCall extends Component {
         });
 
         VoxeetSdk.conference.on("participantUpdated", user => {
-          //console.log("Participant: ",user);
           if (!alreadyStarted) {
             alreadyStarted = true;
             const video = {
@@ -129,7 +128,7 @@ class VoxeetConferencePreCall extends Component {
             VoxeetSdk.conference
               .startVideo(user, video)
               .then(() => console.log("Video started"))
-              .catch(e => console.log(e));
+              .catch(e => console.error(e));
           }
         });
         
@@ -684,7 +683,7 @@ class VoxeetConferencePreCall extends Component {
 }
 
 VoxeetConferencePreCall.propTypes = {
-  accessToken: PropTypes.string.isRequired,
+  accessToken: PropTypes.string,
   consumerKey: PropTypes.string.isRequired,
   consumerSecret: PropTypes.string.isRequired,
   audioOnly: PropTypes.bool.isRequired,
