@@ -58,14 +58,17 @@ class VoxeetConferencePreCall extends Component {
   }
 
   initializeConference() {
-    VoxeetSdk.initialize(this.props.consumerKey, this.props.consumerSecret);
+    if (this.props.accessToken && this.props.accessToken.length > 0) {
+      VoxeetSdk.initializeToken(this.props.accessToken, () => new Promise((resolve) => resolve(this.props.accessToken)));
+    } else {
+      VoxeetSdk.initialize(this.props.consumerKey, this.props.consumerSecret);
+    }
 
     this.startCallTest();
     this.setState({
       initialized: true,
       sdkVersion: VoxeetSdk.version
     });
-    //this.setState({mos: ind.mos});
   }
 
   handleChangeAudioOnly() {
@@ -76,7 +79,7 @@ class VoxeetConferencePreCall extends Component {
 
   startCallTest() {
     if (VoxeetSdk.session.participant == undefined) {
-      var userInfo = { name: "tester", externalId: "btest" };
+      var userInfo = { name: "call-tester", externalId: "call-tester" };
       VoxeetSdk.session
         .open(userInfo)
         .then(() => {
@@ -353,9 +356,7 @@ class VoxeetConferencePreCall extends Component {
   getStats() {
     const { statsAudio, statsVideo, rawDataStats } = this.state;
     VoxeetSdk.conference.localStats().then(stat => {
-      // console.log("MEDIA STATS");
       const tmp = Array.from(stat.values())[0];
-      //console.log(tmp);
       rawDataStats.push(stat);
       for (var i = 0; i < Object.keys(tmp).length; i++) {
         if (tmp[i].type == "local-candidate") {
@@ -394,7 +395,6 @@ class VoxeetConferencePreCall extends Component {
           tmp[i].mediaType === "video" &&
           !this.state.audioOnly
         ) {
-          //console.log(tmp[i]);
           if ((tmp[i].timestamp - this.state.oldTimestampVideo) / 1000 > 0) {
             this.state.timestampVideo.push(
               moment.unix(tmp[i].timestamp / 1000).format("h:mm:ss a")
@@ -418,9 +418,7 @@ class VoxeetConferencePreCall extends Component {
           tmp[i].type === "remote-inbound-rtp" &&
           tmp[i].mediaType === "audio"
         ) {
-          var avgPL =
-            ((tmp[i].packetsLost * 1.0) / tmp[i].packetsReceived) * 100;
-          //console.log("AVG PL: %f",avgPL);
+          var avgPL = ((tmp[i].packetsLost * 1.0) / tmp[i].packetsReceived) * 100;
           this.state.mos = Math.max(1, Math.ceil(5 - avgPL / 4));
         }
         if (!this.state.audioOnly) this.state.bitrateVideoChart.update();
@@ -483,31 +481,6 @@ class VoxeetConferencePreCall extends Component {
             )}
           </div>
         )}
-        {
-          //error == null &&
-          // <div className="block">
-          //   <div className="title-section">Conference quality</div>
-          //   <ul className="list">
-          //     <li>
-          //       <div className="title">MOS</div>
-          //       <div className={(mos > 4 && "good") || ((mos > 3.5 && mos < 4) && "average-good") || ((mos > 2.5 && mos < 3) && "average") || ((mos < 2.5) && "bad") }>
-          //         { mos == 0 ?
-          //           "Calculating ..."
-          //           :
-          //           mos
-          //         }
-          //       </div>
-          //     </li>
-          //   </ul>
-          //   <div className="mos-explanation">
-          //       The mean opinion score (MOS), is a value from 1 to 5 that indicates the average conference quality.
-          //       Very good better than 4.
-          //       Good 3.5 to 4.
-          //       Acceptable 2.5 to 3.
-          //       Bad is below 2.5.
-          //   </div>
-          // </div>
-        }
         {endTesting && error == null ? (
           <div>
             <div>
@@ -682,22 +655,12 @@ class VoxeetConferencePreCall extends Component {
                     )}
                   </div>
                 </li>
-                {/*<li>
-                    <div className="title">Quality events received</div>
-                    <div>
-                    { mos != 0 ?
-                      <div>👍</div>
-                      :
-                      <div>👎</div>
-                    }
-                  </div>
-                  </li>*/}
               </ul>
             </div>
 
             <div className="block-footer">
                 <div className="container-start-test">
-                  <p>Powered by <a href="https://dolby.io" target="_blank">dolby.io</a> - <a href="https://github.com/voxeet/voxeet-sdk-web-tool" target="_blank">GitHub repo</a></p>
+                  <p>Powered by <a href="https://dolby.io" target="_blank">Dolby.io</a> - <a href="https://github.com/dolbyio-samples/comms-sdk-web-call-tester" target="_blank">GitHub repo</a></p>
                 </div>
             </div>
           </div>
@@ -721,9 +684,10 @@ class VoxeetConferencePreCall extends Component {
 }
 
 VoxeetConferencePreCall.propTypes = {
-  audioOnly: PropTypes.bool.isRequired,
+  accessToken: PropTypes.string.isRequired,
   consumerKey: PropTypes.string.isRequired,
-  consumerSecret: PropTypes.string.isRequired
+  consumerSecret: PropTypes.string.isRequired,
+  audioOnly: PropTypes.bool.isRequired,
 };
 
 VoxeetConferencePreCall.defaultProps = {};

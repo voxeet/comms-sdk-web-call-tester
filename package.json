@@ -8,16 +8,16 @@
   },
   "repository": {
       "type": "git",
-      "url": "git+https://github.com/voxeet/voxeet-sdk-web-tool.git"
+      "url": "git+https://github.com/dolbyio-samples/comms-sdk-web-call-tester.git"
   },
   "author": "Dolby.io",
   "license": "MIT",
   "bugs": {
-      "url": "https://github.com/voxeet/voxeet-sdk-web-tool/issues"
+      "url": "https://github.com/dolbyio-samples/comms-sdk-web-call-tester/issues"
   },
-  "homepage": "https://github.com/voxeet/voxeet-sdk-web-tool#readme",
+  "homepage": "https://github.com/dolbyio-samples/comms-sdk-web-call-tester#readme",
   "dependencies": {
-    "@voxeet/voxeet-web-sdk": "^3.2.0",
+    "@voxeet/voxeet-web-sdk": "^3.4.1",
     "bowser": "^2.11.0",
     "chart.js": "^2.9.4",
     "express": "^4.17.1",
@@ -51,7 +51,6 @@
     "webpack-dev-server": "^2.8.2"
   },
   "peerDependencies": {
-    "@voxeet/voxeet-web-sdk": "^3.2.0",
     "express": "^4.17.1"
   },
   "files": [

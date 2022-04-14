@@ -7,22 +7,29 @@ class Home extends Component {
 
   constructor(props) {
       super(props);
+
+      // Set your Consumer Key and Secret here
+      const CONSUMER_KEY = 'CONSUMER_KEY';
+      const CONSUMER_SECRET = 'CONSUMER_SECRET';
+
+      // Load the access token from the URL if present
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessToken = urlParams.get('token');
+
       this.state = {
         startTest: false,
-        // Set your Consumer Key and Secret here
-        consumerKey: "CONSUMER_KEY",
-        consumerSecret: "CONSUMER_SECRET",
+        consumerKey: CONSUMER_KEY,
+        consumerSecret: CONSUMER_SECRET,
+        accessToken: accessToken,
         audioOnly: false,
-        promptKeys: true
-      }
-      this.state = {
-        audioOnly: false,
-        promptKeys: this.state.consumerKey.includes("CONSUMER_") || this.state.consumerSecret.includes("CONSUMER_")
-      }
-      this.startTesting = this.startTesting.bind(this)
-      this.handleChangeAudioOnly = this.handleChangeAudioOnly.bind(this)
-      this.handleChangeConsumerKey = this.handleChangeConsumerKey.bind(this)
-      this.handleChangeConsumerSecret = this.handleChangeConsumerSecret.bind(this)
+        showInitialization: !accessToken && (CONSUMER_KEY.includes("CONSUMER_") || CONSUMER_SECRET.includes("CONSUMER_")),
+      };
+
+      this.startTesting = this.startTesting.bind(this);
+      this.handleChangeAudioOnly = this.handleChangeAudioOnly.bind(this);
+      this.handleChangeConsumerKey = this.handleChangeConsumerKey.bind(this);
+      this.handleChangeConsumerSecret = this.handleChangeConsumerSecret.bind(this);
+      this.handleChangeAccessToken = this.handleChangeAccessToken.bind(this);
   }
 
   startTesting() {
@@ -32,6 +39,12 @@ class Home extends Component {
   handleChangeAudioOnly(e) {
     this.setState({
       audioOnly: e.target.checked
+    });
+  }
+
+  handleChangeAccessToken(e) {
+    this.setState({
+      accessToken: e.target.value,
     });
   }
 
@@ -53,21 +66,36 @@ class Home extends Component {
           <div> 
             <div className="container-background"></div>
             { startTest ?
-              <VoxeetConference consumerKey={this.state.consumerKey} consumerSecret={this.state.consumerSecret} audioOnly={this.state.audioOnly} />
+              <VoxeetConference
+                accessToken={this.state.accessToken}
+                consumerKey={this.state.consumerKey}
+                consumerSecret={this.state.consumerSecret}
+                audioOnly={this.state.audioOnly} />
               :
               <div className="container">
                 <div className="container-logo">
                   <img src={logo} />
                 </div>
                 <div className="block-start">
-                    { this.state.promptKeys &&
+                    { this.state.showInitialization &&
                       <div className="container-start-test">
+                        <div className="container-start-title">Use an <a href="https://docs.dolby.io/communications-apis/reference/get-client-access-token" target="_blank">access token</a> to initialize the SDK:</div>
+                        <label id="accessTokenLabel" htmlFor="accessToken">Access Token</label>
+                        <input type="text" id="accessToken" onChange={this.handleChangeAccessToken} />
+
+                        <hr />
+
+                        <div className="container-start-title">...or use your consumer key and secret:</div>
+
                         <label id="consumerKeyLabel" htmlFor="consumerKey">Consumer Key</label>
                         <input type="text" id="consumerKey" onChange={this.handleChangeConsumerKey} />
+
                         <br />
 
                         <label id="consumerSecretLabel" htmlFor="consumerSecret">Consumer Secret</label>
-                        <input type="password" id="consumerSecret" onChange={this.handleChangeConsumerSecret} />
+                        <input type="text" id="consumerSecret" onChange={this.handleChangeConsumerSecret} />
+
+                        <hr />
                       </div>
                     }
                     <div className="container-start-test">
@@ -107,7 +135,7 @@ class Home extends Component {
                 </div>
                 <div className="block-footer">
                     <div className="container-start-test">
-                      <p>Powered by <a href="https://dolby.io" target="_blank">dolby.io</a> - <a href="https://github.com/voxeet/voxeet-sdk-web-tool" target="_blank">GitHub repo</a></p>
+                      <p>Powered by <a href="https://dolby.io" target="_blank">Dolby.io</a> - <a href="https://github.com/dolbyio-samples/comms-sdk-web-call-tester" target="_blank">GitHub repo</a></p>
                     </div>
                 </div>
               </div>
