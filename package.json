@@ -3,55 +3,48 @@
   "version": "1.0.0",
   "private": false,
   "scripts": {
-    "start": "webpack-dev-server -d --hot --inline --content-base",
-    "build": "webpack --config webpack.config.prod.js --progress"
+    "start": "webpack serve --mode=development",
+    "build": "cross-env NODE_ENV=development webpack --config webpack.config.js --progress"
   },
   "repository": {
-      "type": "git",
-      "url": "git+https://github.com/dolbyio-samples/comms-sdk-web-call-tester.git"
+    "type": "git",
+    "url": "git+https://github.com/dolbyio-samples/comms-sdk-web-call-tester.git"
   },
   "author": "Dolby.io",
   "license": "MIT",
   "bugs": {
-      "url": "https://github.com/dolbyio-samples/comms-sdk-web-call-tester/issues"
+    "url": "https://github.com/dolbyio-samples/comms-sdk-web-call-tester/issues"
   },
   "homepage": "https://github.com/dolbyio-samples/comms-sdk-web-call-tester#readme",
   "dependencies": {
     "@voxeet/voxeet-web-sdk": "^3.4.1",
     "bowser": "^2.11.0",
     "chart.js": "^2.9.4",
-    "express": "^4.17.1",
-    "less": "^3.12.2",
+    "less": "^4.1.1",
     "moment": "^2.29.2",
     "react": "^17.0.1",
     "react-dom": "17.0.1",
     "react-scripts": "4.0.0"
   },
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-eslint": "^8.0.0",
-    "babel-loader": "^7.1.2",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-decorators-legacy": "^1.3.5",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-react": "^6.24.1",
-    "babel-preset-stage-0": "^6.24.1",
-    "copy-webpack-plugin": "^4.2.0",
-    "css-loader": "^0.28.7",
-    "extract-text-webpack-plugin": "^3.0.1",
-    "file-loader": "^0.11.2",
-    "html-webpack-plugin": "^2.30.1",
-    "less-loader": "^4.1.0",
-    "react-hot-loader": "^3.0.0-beta.7",
-    "style-loader": "^0.18.2",
-    "uglifyjs-webpack-plugin": "1.1.5",
-    "url-loader": "^0.5.9",
-    "webpack": "^3.12.0",
-    "webpack-dev-server": "^2.8.2"
+    "@babel/core": "^7.13.10",
+    "@babel/preset-env": "^7.13.10",
+    "@babel/preset-react": "^7.12.13",
+    "babel-loader": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "css-loader": "^5.1.3",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.0",
+    "less-loader": "^8.0.0",
+    "react-hot-loader": "^4.13.0",
+    "style-loader": "^2.0.0",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.1.3",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.8.1"
   },
   "peerDependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.3"
   },
   "files": [
     "README.md",
