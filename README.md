@@ -9,15 +9,14 @@ This project is a pre-call tester to check client readiness for connecting to do
 ## Project setup
 
  - Clone this repository.
- - Get your Dolby<span>.io</span> consumerKey and consumerSecret from our [Developer Portal](https://dolby.io/dashboard/).
- - Request an access token from the REST API https://docs.dolby.io/communications-apis/reference/get-client-access-token
+ - Get a Dolby<span>.io</span> access token from our [Developer Portal](https://dolby.io/dashboard/).
 
 ## Initializing the project
 
 Run the following command to install all the dependencies required to run the project:
 
 ```bash
-yarn install
+npm install
 ```
 
 ## Running the project
@@ -25,7 +24,7 @@ yarn install
 Run the following command to start the project:
 
 ```bash
-yarn start
+npm run start
 ```
 
 The project is now running, go to: http://localhost:8081 and provide the access token in the first text box to initialize the SDK.
@@ -35,7 +34,7 @@ The project is now running, go to: http://localhost:8081 and provide the access 
 If you want to generate a bundle file that you can deploy on a web server, run the following command:
 
 ```bash
-yarn run build
+npm run build
 ```
 
 Get the files in the `dist` folder and deploy them on your web server.

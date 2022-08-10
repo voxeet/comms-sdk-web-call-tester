@@ -8,27 +8,19 @@ class Home extends Component {
   constructor(props) {
       super(props);
 
-      // Set your Consumer Key and Secret here
-      const CONSUMER_KEY = 'CONSUMER_KEY';
-      const CONSUMER_SECRET = 'CONSUMER_SECRET';
-
       // Load the access token from the URL if present
       const urlParams = new URLSearchParams(window.location.search);
       const accessToken = urlParams.get('token');
 
       this.state = {
         startTest: false,
-        consumerKey: CONSUMER_KEY,
-        consumerSecret: CONSUMER_SECRET,
         accessToken: accessToken,
         audioOnly: false,
-        showInitialization: !accessToken && (CONSUMER_KEY.includes("CONSUMER_") || CONSUMER_SECRET.includes("CONSUMER_")),
+        showInitialization: !accessToken,
       };
 
       this.startTesting = this.startTesting.bind(this);
       this.handleChangeAudioOnly = this.handleChangeAudioOnly.bind(this);
-      this.handleChangeConsumerKey = this.handleChangeConsumerKey.bind(this);
-      this.handleChangeConsumerSecret = this.handleChangeConsumerSecret.bind(this);
       this.handleChangeAccessToken = this.handleChangeAccessToken.bind(this);
   }
 
@@ -48,18 +40,6 @@ class Home extends Component {
     });
   }
 
-  handleChangeConsumerKey(e) {
-    this.setState({
-      consumerKey: e.target.value,
-    });
-  }
-
-  handleChangeConsumerSecret(e) {
-    this.setState({
-      consumerSecret: e.target.value,
-    });
-  }
-
   render() {
       const { startTest } = this.state
         return (
@@ -68,8 +48,6 @@ class Home extends Component {
             { startTest ?
               <VoxeetConference
                 accessToken={this.state.accessToken}
-                consumerKey={this.state.consumerKey}
-                consumerSecret={this.state.consumerSecret}
                 audioOnly={this.state.audioOnly} />
               :
               <div className="container">
@@ -82,20 +60,6 @@ class Home extends Component {
                         <div className="container-start-title">Use an <a href="https://docs.dolby.io/communications-apis/reference/get-client-access-token" target="_blank">access token</a> to initialize the SDK:</div>
                         <label id="accessTokenLabel" htmlFor="accessToken">Access Token</label>
                         <input type="text" id="accessToken" onChange={this.handleChangeAccessToken} />
-
-                        <hr />
-
-                        <div className="container-start-title">...or use your consumer key and secret:</div>
-
-                        <label id="consumerKeyLabel" htmlFor="consumerKey">Consumer Key</label>
-                        <input type="text" id="consumerKey" onChange={this.handleChangeConsumerKey} />
-
-                        <br />
-
-                        <label id="consumerSecretLabel" htmlFor="consumerSecret">Consumer Secret</label>
-                        <input type="text" id="consumerSecret" onChange={this.handleChangeConsumerSecret} />
-
-                        <hr />
                       </div>
                     }
                     <div className="container-start-test">

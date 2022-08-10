@@ -58,11 +58,7 @@ class VoxeetConferencePreCall extends Component {
   }
 
   initializeConference() {
-    if (this.props.accessToken && this.props.accessToken.length > 0) {
-      VoxeetSdk.initializeToken(this.props.accessToken, () => new Promise((resolve) => resolve(this.props.accessToken)));
-    } else {
-      VoxeetSdk.initialize(this.props.consumerKey, this.props.consumerSecret);
-    }
+    VoxeetSdk.initializeToken(this.props.accessToken, () => new Promise((resolve) => resolve(this.props.accessToken)));
 
     this.startCallTest();
     this.setState({
@@ -104,7 +100,7 @@ class VoxeetConferencePreCall extends Component {
     VoxeetSdk.conference
       .create({
         alias: "call-tester-" + Math.floor(Math.random() * 1001),
-        params: { stats: true, videoCodec: "H264", audioCodec: "G711" }
+        params: { stats: true, }
       })
       .then(conference => {
         this.setState({
@@ -220,6 +216,7 @@ class VoxeetConferencePreCall extends Component {
               bitrateVideoChart,
               audioOnly: this.state.nextTestAudioOnly
             });
+            
             setTimeout(() => {
               const browser = Bowser.getParser(window.navigator.userAgent);
               const browserInfo = browser.getBrowser();
@@ -230,18 +227,23 @@ class VoxeetConferencePreCall extends Component {
                 safari: ">11",
                 opera: ">57"
               });
+
               clearInterval(this.state.intervalId);
+
               this.setState({
                 intervalId: null,
                 endTesting: true,
                 isValidBrowser,
                 browserInfo
               });
-              VoxeetSdk.conference.leave();
-              navigator.mediaDevices
-                .getUserMedia({
-                  audio: true,
-                  video: this.state.audioOnly ? false : true
+
+              VoxeetSdk.conference.leave()
+                .then(() => {
+                  return navigator.mediaDevices
+                    .getUserMedia({
+                      audio: true,
+                      video: this.state.audioOnly ? false : true
+                    });
                 })
                 .then(stream => {
                   if (!this.state.audioOnly) {
@@ -670,7 +672,7 @@ class VoxeetConferencePreCall extends Component {
                 <div className="loader"></div>
               </div>
               <div className="state-testing">
-                Test is running, please wait<span className="one">.</span>
+                Test is in progress, please wait<span className="one">.</span>
                 <span className="two">.</span>
                 <span className="three">.</span>​
               </div>
@@ -684,8 +686,6 @@ class VoxeetConferencePreCall extends Component {
 
 VoxeetConferencePreCall.propTypes = {
   accessToken: PropTypes.string,
-  consumerKey: PropTypes.string.isRequired,
-  consumerSecret: PropTypes.string.isRequired,
   audioOnly: PropTypes.bool.isRequired,
 };
 
