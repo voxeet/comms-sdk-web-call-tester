@@ -43,6 +43,7 @@ class VoxeetConferencePreCall extends Component {
       sessionOpenState: false,
       createConferenceState: false,
       joinConferenceState: false,
+      leaveConferenceState: false,
       intervalId: null
     };
     this.startCallTest = this.startCallTest.bind(this);
@@ -100,17 +101,20 @@ class VoxeetConferencePreCall extends Component {
     VoxeetSdk.conference
       .create({
         alias: "call-tester-" + Math.floor(Math.random() * 1001),
-        params: { stats: true, }
+        params: {
+          stats: true,
+          dolbyVoice: true,
+        }
       })
       .then(conference => {
         this.setState({
           createConferenceState: true
         });
 
-        VoxeetSdk.conference.on("participantUpdated", user => {
+        VoxeetSdk.conference.on("participantUpdated", () => {
           if (!alreadyStarted) {
             alreadyStarted = true;
-            const video = {
+            const videoConstraints = {
               mandatory: {
                 minWidth: 640,
                 minHeight: 480,
@@ -121,15 +125,20 @@ class VoxeetConferencePreCall extends Component {
               }
             };
 
-            VoxeetSdk.conference
-              .startVideo(user, video)
+            VoxeetSdk.video.local
+              .start(videoConstraints)
               .then(() => console.log("Video started"))
               .catch(e => console.error(e));
           }
         });
+
+        const joinConstraints = {
+          constraints: constraints,
+          dvwc: false, // DVWC does not expose audio stats
+        };
         
         VoxeetSdk.conference
-          .join(conference, { constraints: constraints })
+          .join(conference, joinConstraints)
           .then(info => {
             const optionsBitrate = {
               spanGaps: true,
@@ -239,6 +248,10 @@ class VoxeetConferencePreCall extends Component {
 
               VoxeetSdk.conference.leave()
                 .then(() => {
+                  this.setState({
+                    leaveConferenceState: true,
+                  });
+
                   return navigator.mediaDevices
                     .getUserMedia({
                       audio: true,
@@ -345,6 +358,7 @@ class VoxeetConferencePreCall extends Component {
       videoWidth: 640,
       createConferenceState: false,
       joinConferenceState: false,
+      leaveConferenceState: false,
       intervalId: null
     });
     if (this.state.initialized) {
@@ -556,9 +570,9 @@ class VoxeetConferencePreCall extends Component {
                     <ul id="audioDevices">
                       {this.state.audioDevices.map((device, i) => (
                         this.state.selectedAudioDevice == device.deviceId ? (
-                          <li>✅ {device.label}</li>
+                          <li key={device.label}>✅ {device.label}</li>
                         ) : (
-                          <li>❌ {device.label}</li>
+                          <li key={device.label}>❌ {device.label}</li>
                         )
                       ))}
                       <li>
@@ -609,9 +623,9 @@ class VoxeetConferencePreCall extends Component {
                     <ul id="videoDevices">
                       {this.state.videoDevices.map((device, i) => (
                         this.state.selectedVideoDevice == device.deviceId ? (
-                          <li>✅ {device.label}</li>
+                          <li key={device.label}>✅ {device.label}</li>
                         ) : (
-                          <li>❌ {device.label}</li>
+                          <li key={device.label}>❌ {device.label}</li>
                         )
                       ))}
                     </ul>
@@ -650,6 +664,16 @@ class VoxeetConferencePreCall extends Component {
                   <div className="title">Join the conference</div>
                   <div>
                     {this.state.joinConferenceState ? (
+                      <div>👍</div>
+                    ) : (
+                      <div>👎</div>
+                    )}
+                  </div>
+                </li>
+                <li>
+                  <div className="title">Leave the conference</div>
+                  <div>
+                    {this.state.leaveConferenceState ? (
                       <div>👍</div>
                     ) : (
                       <div>👎</div>
