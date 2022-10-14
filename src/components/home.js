@@ -25,12 +25,12 @@ class Home extends Component {
   }
 
   startTesting() {
-    this.setState({ startTest: true })
+    this.setState({ startTest: true });
   }
 
   handleChangeAudioOnly(e) {
     this.setState({
-      audioOnly: e.target.checked
+      audioOnly: e.target.checked,
     });
   }
 
