@@ -1,15 +1,14 @@
-# Dolby<span>.io</span> Call Tester
+[![Deploy to GitHub Pages](https://github.com/dolbyio-samples/comms-sdk-web-call-tester/actions/workflows/deploy-to-gh-pages.yml/badge.svg)](https://github.com/dolbyio-samples/comms-sdk-web-call-tester/actions/workflows/deploy-to-gh-pages.yml)
+[![License](https://img.shields.io/github/license/dolbyio-samples/comms-sdk-web-call-tester)](LICENSE)
 
-<p align="center">
-<img src="wiki/dolbyio.jpeg" alt="Dolby.io logo" title="Dolby.io logo" width="200"/>
-</p>
+# Dolby.io Call Tester
 
 This project is a pre-call tester to check client readiness for connecting to dolby<span>.io</span>. The tool will check network, devices, and available network bandwidth for audio and video traffic.
 
 ## Project setup
 
  - Clone this repository.
- - Get a Dolby<span>.io</span> access token from our [Developer Portal](https://dolby.io/dashboard/).
+ - Get a Dolby<span>.io</span> client access token from our [Developer Portal](https://dolby.io/dashboard/).
 
 ## Initializing the project
 
@@ -53,7 +52,7 @@ Click the _Start testing_ button, the test will begin.
 <img src="wiki/test-running.png" alt="Dolby.io logo" title="Dolby.io logo" width="640"/>
 </p>
 
-After about 30 seconds, you will see the result showing up on the screen.
+After about 15 seconds, you will see the result showing up on the screen.
 
 <p align="center">
 <img src="wiki/test-result.png" alt="Dolby.io logo" title="Dolby.io logo" width="640"/>
