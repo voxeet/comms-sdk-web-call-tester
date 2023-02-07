@@ -42,7 +42,7 @@ const Home = () => {
           <div className="block-start">
               { showInitialization &&
                 <div className="container-start-test">
-                  <div className="container-start-title">Use an <a href="https://docs.dolby.io/communications-apis/reference/get-client-access-token" target="_blank">access token</a> to initialize the SDK:</div>
+                  <div className="container-start-title">Use a <a href="https://docs.dolby.io/communications-apis/reference/get-client-access-token" target="_blank">client access token</a> to initialize the SDK:</div>
                   <label id="accessTokenLabel" htmlFor="accessToken">Access Token</label>
                   <input type="text" id="accessToken" onChange={handleChangeAccessToken} />
                 </div>
