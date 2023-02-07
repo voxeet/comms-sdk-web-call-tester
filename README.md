@@ -43,19 +43,19 @@ Get the files in the `dist` folder and deploy them on your web server.
 Run the project and go to the web page http://localhost:8081, you should get the following screen:
 
 <p align="center">
-<img src="wiki/welcome.png" alt="Dolby.io logo" title="Dolby.io logo" width="640"/>
+<img src="images/welcome.png" alt="Dolby.io logo" title="Dolby.io logo" width="640"/>
 </p>
 
 Click the _Start testing_ button, the test will begin.
 
 <p align="center">
-<img src="wiki/test-running.png" alt="Dolby.io logo" title="Dolby.io logo" width="640"/>
+<img src="images/test-running.png" alt="Dolby.io logo" title="Dolby.io logo" width="640"/>
 </p>
 
 After about 15 seconds, you will see the result showing up on the screen.
 
 <p align="center">
-<img src="wiki/test-result.png" alt="Dolby.io logo" title="Dolby.io logo" width="640"/>
+<img src="images/test-result.png" alt="Dolby.io logo" title="Dolby.io logo" width="640"/>
 </p>
 
 ## GitHub Pages
