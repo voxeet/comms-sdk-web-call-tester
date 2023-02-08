@@ -1,53 +1,6 @@
 import { EventEmitter } from 'events';
 import VoxeetSDK from "@voxeet/voxeet-web-sdk";
 
-type Stats = {
-  type: string;
-  timestamp: number;
-};
-
-type RTCOutboundRtpStats = {
-  mediaType: string;
-
-  ssrc: number;
-  trackId: string;
-} & Stats;
-
-type RTCOutboundRtpAudioStreamStats = {
-  packetsSent: number;
-  bytesSent: number;
-  retransmittedPacketsSent: number;
-  retransmittedBytesSent: number;
-  targetBitrate: number;
-} & RTCOutboundRtpStats;
-
-type RTCOutboundRtpVideoStreamStats = {
-  packetsSent: number;
-  bytesSent: number;
-  bitrateSent: number;
-  retransmittedPacketsSent: number;
-  retransmittedBytesSent: number;
-  contentType: string;
-  nackCount: number;
-  firCount: number;
-  pliCount: number;
-  qualityLimitationReason: string;
-  framesEncoded: number;
-  framesSent: number;
-  frameWidth: number;
-  frameHeight: number;
-  framesPerSecond: number;
-  keyFramesEncoded: number;
-  totalPacketSendDelay: number;
-  encoderImplementation: string;
-  qpSum: number;
-  targetBitrate: number;
-} & RTCOutboundRtpStats;
-
-declare type Statistics = RTCOutboundRtpAudioStreamStats | RTCOutboundRtpVideoStreamStats;
-
-declare type WebRTCStats = Map<string, Array<Statistics>>;
-
 export type AudioOutputCollect = {
   timestamp: number;
   totalBytes?: number;
@@ -82,7 +35,7 @@ export type OnCollectReady = {
 
 class WebRTCStatsCollection extends EventEmitter {
   #intervalId: NodeJS.Timer | null = null;
-  #rawData: Statistics[][] = [];
+  #rawData: RTCStats[][] = [];
 
   #timestampAudioOutput: number = 0;
   #totalBytesSentAudio: number = 0;
@@ -117,57 +70,58 @@ class WebRTCStatsCollection extends EventEmitter {
   };
 
   private getStats = async () =>{
-    const webRTCStats: WebRTCStats = (await VoxeetSDK.conference.localStats()) as WebRTCStats;
+    const webRTCStats: RTCStatsReport = (await VoxeetSDK.conference.localStats()) as RTCStatsReport;
 
     // Only consider the local participant
-    const statistics: Statistics[] = Array.from(webRTCStats.values())[0];
+    const statistics: RTCStats[] = Array.from(webRTCStats.values())[0];
     this.#rawData.push(statistics);
 
     var audioOutput: AudioOutputCollect | null = null;
     var videoOutput: VideoOutputCollect | null = null;
 
     for (let i = 0; i < Object.keys(statistics).length; i++) {
-      const entry: Statistics = statistics[i];
+      const entry: RTCStats = statistics[i];
 
       if (entry.type === 'outbound-rtp') {
-        if (entry.mediaType === 'audio' && entry.timestamp - this.#timestampAudioOutput > 0) {
-          const bitrate = (entry.bytesSent - this.#totalBytesSentAudio) / ((entry.timestamp - this.#timestampAudioOutput) / 1000);
-          const packetRate = (entry.packetsSent - this.#totalPacketsSentAudio) / ((entry.timestamp - this.#timestampAudioOutput) / 1000);
-          this.#timestampAudioOutput = entry.timestamp;
-          this.#totalBytesSentAudio = entry.bytesSent;
-          this.#totalPacketsSentAudio = entry.packetsSent;
+        const outEntry: RTCOutboundRtpStreamStats = entry as RTCOutboundRtpStreamStats;
+
+        if (outEntry.kind === 'audio' && outEntry.timestamp - this.#timestampAudioOutput > 0) {
+          const bitrate = (outEntry.bytesSent! - this.#totalBytesSentAudio) / ((entry.timestamp - this.#timestampAudioOutput) / 1000);
+          const packetRate = (outEntry.packetsSent! - this.#totalPacketsSentAudio) / ((entry.timestamp - this.#timestampAudioOutput) / 1000);
+          this.#timestampAudioOutput = outEntry.timestamp;
+          this.#totalBytesSentAudio = outEntry.bytesSent!;
+          this.#totalPacketsSentAudio = outEntry.packetsSent!;
 
           audioOutput = {
             timestamp: entry.timestamp,
-            totalBytes: entry.bytesSent,
-            totalPackets: entry.packetsSent,
+            totalBytes: outEntry.bytesSent,
+            totalPackets: outEntry.packetsSent,
             bitrate: bitrate,
             packetRate: packetRate,
-            targetBitrate: entry.targetBitrate,
-            retransmittedPacketsSent: entry.retransmittedPacketsSent,
-            retransmittedBytesSent: entry.retransmittedBytesSent,
+            targetBitrate: outEntry.targetBitrate,
+            retransmittedPacketsSent: outEntry.retransmittedPacketsSent,
+            retransmittedBytesSent: outEntry.retransmittedBytesSent,
           };
-        } else if (entry.mediaType === 'video' && entry.timestamp - this.#timestampVideoOutput > 0) {
-          const vEntry: RTCOutboundRtpVideoStreamStats = entry as RTCOutboundRtpVideoStreamStats;
-          const bitrate = (entry.bytesSent - this.#totalBytesSentVideo) / ((entry.timestamp - this.#timestampVideoOutput) / 1000);
-          const packetRate = (entry.packetsSent - this.#totalPacketsSentVideo) / ((entry.timestamp - this.#timestampVideoOutput) / 1000);
+        } else if (outEntry.kind === 'video' && entry.timestamp - this.#timestampVideoOutput > 0) {
+          const bitrate = (outEntry.bytesSent! - this.#totalBytesSentVideo) / ((entry.timestamp - this.#timestampVideoOutput) / 1000);
+          const packetRate = (outEntry.packetsSent! - this.#totalPacketsSentVideo) / ((entry.timestamp - this.#timestampVideoOutput) / 1000);
           this.#timestampVideoOutput = entry.timestamp;
-          this.#totalBytesSentVideo = entry.bytesSent;
-          this.#totalPacketsSentVideo = entry.packetsSent;
+          this.#totalBytesSentVideo = outEntry.bytesSent!;
+          this.#totalPacketsSentVideo = outEntry.packetsSent!;
 
           videoOutput = {
             timestamp: entry.timestamp,
-            totalBytes: entry.bytesSent,
-            totalPackets: entry.packetsSent,
+            totalBytes: outEntry.bytesSent,
+            totalPackets: outEntry.packetsSent,
             bitrate: bitrate,
             packetRate: packetRate,
-            targetBitrate: entry.targetBitrate,
-            retransmittedPacketsSent: entry.retransmittedPacketsSent,
-            retransmittedBytesSent: entry.retransmittedBytesSent,
-            frameWidth: vEntry.frameWidth,
-            frameHeight: vEntry.frameHeight,
-            framesPerSecond: vEntry.framesPerSecond,
-            framesSent: vEntry.framesSent,
+            targetBitrate: outEntry.targetBitrate,
+            retransmittedPacketsSent: outEntry.retransmittedPacketsSent,
+            retransmittedBytesSent: outEntry.retransmittedBytesSent,
+            frameWidth: outEntry.frameWidth,
+            frameHeight: outEntry.frameHeight,
+            framesPerSecond: outEntry.framesPerSecond,
+            framesSent: outEntry.framesSent,
           };
         }
       }
