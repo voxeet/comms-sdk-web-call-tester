@@ -1,6 +1,6 @@
 const path = require('path');
-const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 try {
   require('os').networkInterfaces()
@@ -9,9 +9,19 @@ try {
 }
 
 module.exports = {
-  entry: [
-    './src/index.js',
-  ],
+  entry: './src/index.tsx',
+  output: {
+    path: path.resolve(__dirname, 'dist', 'host'),
+    filename: 'bundle.js',
+  },
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    plugins: [
+      new TsconfigPathsPlugin({
+        configFile: './tsconfig.json',
+      }),
+    ],
+  },
   devServer: {
     port: 8081,
     https: false,
@@ -25,26 +35,17 @@ module.exports = {
         use: ['style-loader', 'css-loader', 'less-loader'],
       },
       {
-        test: /\.(js|jsx)$/,
+        test: /\.(ts|tsx)$/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader',
+            loader: 'babel-loader',
         },
       },
       {
-        test: /\.css$/,
-        use: ["style-loader", "css-loader"]
-      },
-      {
-        test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-        use: "url-loader?limit=10000&mimetype=application/octet-stream"
-      }, {
-        test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-        use: "file-loader"
-      }, {
         test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
         use: "url-loader?limit=10000&mimetype=image/svg+xml"
-      }, {
+      },
+      {
         test: /\.(jpg|jpeg|gif|png)$/,
         exclude: /node_modules/,
         use: 'url-loader?limit=65000&name=images/[name].[ext]'
@@ -55,13 +56,6 @@ module.exports = {
     new HtmlWebpackPlugin({
       inject: true,
       template: './public/index.html'    
-    }),
-    new CopyWebpackPlugin({
-      patterns:[
-       { from: "./node_modules/@voxeet/voxeet-web-sdk/dist/dvwc_impl.wasm", noErrorOnMissing: true },
-       { from: "./node_modules/@voxeet/voxeet-web-sdk/dist/voxeet-dvwc-worker.js", noErrorOnMissing: true },
-       { from: "./node_modules/@voxeet/voxeet-web-sdk/dist/voxeet-worklet.js", noErrorOnMissing: true },
-     ]
     }),
   ]
 };
