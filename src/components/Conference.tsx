@@ -32,6 +32,7 @@ const Conference = ({
   const [browserInfo, setBrowserInfo] = useState<any>(null);
   const [audioOnly, setAudioOnly] = useState(audioOnlyTest);
   const [initialized, setInitialized] = useState(false);
+  const [npmLink, setNpmLink] = useState('');
   const [sdkVersion, setSdkVersion] = useState('');
   const [nextTestAudioOnly, setNextTestAudioOnly] = useState(audioOnly);
   const [sessionOpenState, setSessionOpenState] = useState(false);
@@ -61,6 +62,7 @@ const Conference = ({
     await startCallTest();
     setInitialized(true);
     setSdkVersion(VoxeetSDK.version);
+    setNpmLink(`https://www.npmjs.com/package/@voxeet/voxeet-web-sdk/v/${VoxeetSDK.version}`);
   };
 
   const handleChangeAudioOnly = () => {
@@ -431,7 +433,7 @@ const Conference = ({
                 <li>
                   <div className="title">Voxeet SDK version</div>
                   <div>
-                    <a target="_blank" href={"https://www.npmjs.com/package/@voxeet/voxeet-web-sdk/v/" + sdkVersion}>{sdkVersion}</a>
+                    <a target="_blank" href={npmLink}>{sdkVersion}</a>
                   </div>
                 </li>
               </ul>
