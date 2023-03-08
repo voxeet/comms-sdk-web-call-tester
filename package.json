@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/dolbyio-samples/comms-sdk-web-call-tester#readme",
   "dependencies": {
+    "@dolbyio/webrtc-stats": "^0.1.0",
     "@voxeet/voxeet-web-sdk": "^3.8.5",
     "bowser": "^2.11.0",
     "chart.js": "^4.2.0",

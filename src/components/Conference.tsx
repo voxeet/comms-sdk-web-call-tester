@@ -6,7 +6,8 @@ import { Chart, registerables, LineControllerChartOptions } from "chart.js";
 import Bowser from "bowser";
 
 import VoxeetSDK from "@voxeet/voxeet-web-sdk";
-import WebRTCStatsCollection, { OnCollectReady } from "./WebRtcStatsCollection";
+import WebRTCStats from "@dolbyio/webrtc-stats";
+import { OnStats } from "@dolbyio/webrtc-stats/dist/types/WebRTCStats";
 
 type ConferenceProps = {
   accessToken: string;
@@ -15,7 +16,7 @@ type ConferenceProps = {
 
 var bitrateAudioChart: Chart | null = null;
 var bitrateVideoChart: Chart | null = null;
-var collection: WebRTCStatsCollection;
+var collection: WebRTCStats;
 
 const Conference = ({
   accessToken = '',
@@ -77,11 +78,25 @@ const Conference = ({
   };
 
   useEffect(() => {
-    collection = new WebRTCStatsCollection();
-    collection.on('collection', collectionReady);
+    collection = new WebRTCStats({
+      getStatsInterval: 1000,
+      getStats: async () => {
+        const webRTCStats = await VoxeetSDK.conference.localStats();
+
+        // Convert the WebRTCStats object to RTCStatsReport
+        const values = Array.from(webRTCStats.values())[0];
+        const map = new Map();
+        for (let i = 0; i < values.length; i++) {
+            const element: any = values[i];
+            map.set(element.id, element);
+        }
+        return map;
+      },
+    });
+    collection.on('stats', collectionReady);
 
     return () => {
-      collection.removeListener('collection', collectionReady);
+      collection.removeListener('stats', collectionReady);
     }
   }, []);
 
@@ -126,13 +141,13 @@ const Conference = ({
       }
     });
 
-    const joinConstraints = {
+    const joinOptions = {
       constraints: constraints,
       dvwc: false, // DVWC does not expose audio stats
     };
     
     try {
-      await VoxeetSDK.conference.join(conference, joinConstraints);
+      await VoxeetSDK.conference.join(conference, joinOptions);
 
       const optionsBitrate: LineControllerChartOptions & any = {
         showLine: true,
@@ -235,7 +250,7 @@ const Conference = ({
         }
       }
 
-      collection?.startCollection();
+      collection?.start();
       setJoinConferenceState(true);
       setAudioOnly(nextTestAudioOnly);
       
@@ -250,7 +265,7 @@ const Conference = ({
           opera: ">57"
         });
 
-        collection?.stopCollection();
+        collection?.stop();
         setEndTesting(true);
         setIsValidBrowser(_isValidBrowser!);
         setBrowserInfo(_browserInfo);
@@ -317,8 +332,9 @@ const Conference = ({
     }
   };
   
-  const collectionReady = ({audioOutput, videoOutput}: OnCollectReady) => {
-    if (audioOutput && bitrateAudioChart) {
+  const collectionReady = (event: OnStats) => {
+    if (event.output.audio.length && bitrateAudioChart) {
+      const audioOutput = event.output.audio[0];
       const timeStr = new Date(audioOutput.timestamp).toLocaleTimeString();
       bitrateAudioChart.data.labels!.push(timeStr);
       bitrateAudioChart.data.datasets.forEach((dataset: any) => {
@@ -326,7 +342,8 @@ const Conference = ({
       });
       bitrateAudioChart!.update();
     }
-    if (videoOutput && bitrateVideoChart) {
+    if (event.output.video.length && bitrateVideoChart) {
+      const videoOutput = event.output.video[0];
       const timeStr = new Date(videoOutput.timestamp).toLocaleTimeString();
       bitrateVideoChart.data.labels!.push(timeStr);
       bitrateVideoChart.data.datasets.forEach((dataset: any) => {
