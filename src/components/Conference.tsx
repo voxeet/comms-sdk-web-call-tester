@@ -433,7 +433,7 @@ const Conference = ({
                 <li>
                   <div className="title">Voxeet SDK version</div>
                   <div>
-                    <a target="_blank" href={npmLink}>{sdkVersion}</a>
+                    <a target="_blank" href={npmLink} rel="noreferrer">{sdkVersion}</a>
                   </div>
                 </li>
               </ul>
